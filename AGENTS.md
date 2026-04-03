@@ -11,6 +11,7 @@ Until the team chooses an official product name, use `PuzzleGame` as the project
 - Treat markdown documentation as a source of truth for gameplay, architecture, backend contracts, and production constraints.
 - When code changes affect behavior, architecture, data flow, public APIs, backend contracts, scene flow, or folder structure, update the relevant `.md` files in the same task.
 - Do not leave code and documentation out of sync.
+- NEVER commit API keys, access tokens, secrets, credentials, or personal information to the repository.
 - If a requested code change would alter a core function or system already defined in the markdown docs, stop and ask for explicit user approval before implementing it.
 - Keep changes incremental and MVP-friendly unless the user asks for a larger redesign.
 
