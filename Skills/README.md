@@ -73,6 +73,7 @@ Build a clean, scalable MVP with strong gameplay and extensible architecture.
 - `../AGENTS.md`
 - `TECH_ARCHITECTURE.md`
 - `UNITY_STRUCTURE.md`
+- `UNITY_SCENE_SETUP.md`
 - `GAME_DESIGN.md`
 - `INPUT_BUFFER_AND_ACTION_FLOW.md`
 - `DATABASE_SCHEMA.md`

@@ -38,6 +38,7 @@ Until the team chooses an official product name, use `PuzzleGame` as the project
 - Game design: `Skills/GAME_DESIGN.md`
 - Technical architecture: `Skills/TECH_ARCHITECTURE.md`
 - Unity structure: `Skills/UNITY_STRUCTURE.md`
+- Unity scene setup: `Skills/UNITY_SCENE_SETUP.md`
 - Input and action flow: `Skills/INPUT_BUFFER_AND_ACTION_FLOW.md`
 - Database schema: `Skills/DATABASE_SCHEMA.md`
 - Backend functions: `Skills/DATABASE_FUNCTIONS.md`
