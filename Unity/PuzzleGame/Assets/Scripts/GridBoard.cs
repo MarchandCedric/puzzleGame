@@ -19,6 +19,8 @@ public class GridBoard : MonoBehaviour
     [SerializeField] private bool includeSceneObstacles = true;
     [SerializeField] private bool searchWholeSceneForObstacles = true;
     [SerializeField] private bool searchWholeSceneForGroundTiles = true;
+    [SerializeField] private bool searchWholeSceneForKeys = true;
+    [SerializeField] private bool searchWholeSceneForDoors = true;
 
     public float CellSize => cellSize;
     public float LayerHeight => layerHeight;
@@ -30,7 +32,7 @@ public class GridBoard : MonoBehaviour
         layerHeight = Mathf.Max(0.1f, layerHeight);
     }
 
-    public bool IsWalkable(Vector3Int cell)
+    public bool IsWalkable(Vector3Int cell, PlayerKeyRing keyRing = null)
     {
         if (requireSceneGroundTiles)
         {
@@ -42,7 +44,19 @@ public class GridBoard : MonoBehaviour
             return false;
         }
 
-        return !GetBlockedCells().Contains(cell);
+        GridDoor door = FindDoorAt(cell);
+        if (door != null)
+        {
+            if (door.IsOpen)
+                return true;
+
+            return keyRing != null && keyRing.HasKey(door.RequiredKeyType);
+        }
+
+        if (GetBlockedCells().Contains(cell))
+            return false;
+
+        return true;
     }
 
     public Vector3 GridToWorld(Vector3Int cell, float yOffset = 0f)
@@ -62,6 +76,7 @@ public class GridBoard : MonoBehaviour
     public HashSet<Vector3Int> GetBlockedCells()
     {
         HashSet<Vector3Int> occupiedCells = new HashSet<Vector3Int>(blockedCells);
+        HashSet<Vector3Int> doorCells = GetDoorCells();
 
         if (!includeSceneObstacles)
             return occupiedCells;
@@ -70,6 +85,9 @@ public class GridBoard : MonoBehaviour
         foreach (GridObstacle obstacle in obstacles)
         {
             if (obstacle == null)
+                continue;
+
+            if (doorCells.Contains(obstacle.GridPosition))
                 continue;
 
             occupiedCells.Add(obstacle.GridPosition);
@@ -142,6 +160,32 @@ public class GridBoard : MonoBehaviour
         return true;
     }
 
+    public bool TryUnlockDoor(Vector3Int cell, PlayerKeyRing keyRing)
+    {
+        GridDoor door = FindDoorAt(cell);
+        if (door == null || door.IsOpen)
+            return true;
+
+        if (keyRing == null || !keyRing.TryConsumeKey(door.RequiredKeyType))
+            return false;
+
+        door.Open();
+        return true;
+    }
+
+    public void ResolveArrival(Vector3Int cell, PlayerKeyRing keyRing)
+    {
+        if (keyRing == null)
+            return;
+
+        GridKey key = FindKeyAt(cell);
+        if (key == null || key.IsCollected)
+            return;
+
+        keyRing.AddKey(key.KeyType);
+        key.Collect();
+    }
+
     private GridObstacle[] FindObstacles()
     {
         if (searchWholeSceneForObstacles)
@@ -156,6 +200,60 @@ public class GridBoard : MonoBehaviour
             return FindObjectsByType<GridGroundTile>(FindObjectsInactive.Include);
 
         return GetComponentsInChildren<GridGroundTile>(true);
+    }
+
+    private GridKey[] FindKeys()
+    {
+        if (searchWholeSceneForKeys)
+            return FindObjectsByType<GridKey>(FindObjectsInactive.Include);
+
+        return GetComponentsInChildren<GridKey>(true);
+    }
+
+    private GridDoor[] FindDoors()
+    {
+        if (searchWholeSceneForDoors)
+            return FindObjectsByType<GridDoor>(FindObjectsInactive.Include);
+
+        return GetComponentsInChildren<GridDoor>(true);
+    }
+
+    private GridKey FindKeyAt(Vector3Int cell)
+    {
+        GridKey[] keys = FindKeys();
+        foreach (GridKey key in keys)
+        {
+            if (key != null && !key.IsCollected && key.GridPosition == cell)
+                return key;
+        }
+
+        return null;
+    }
+
+    private HashSet<Vector3Int> GetDoorCells()
+    {
+        HashSet<Vector3Int> cells = new HashSet<Vector3Int>();
+        GridDoor[] doors = FindDoors();
+
+        foreach (GridDoor door in doors)
+        {
+            if (door != null)
+                cells.Add(door.GridPosition);
+        }
+
+        return cells;
+    }
+
+    private GridDoor FindDoorAt(Vector3Int cell)
+    {
+        GridDoor[] doors = FindDoors();
+        foreach (GridDoor door in doors)
+        {
+            if (door != null && door.GridPosition == cell)
+                return door;
+        }
+
+        return null;
     }
 
     private bool IsInsideDerivedBoard(Vector3Int cell)

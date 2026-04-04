@@ -15,12 +15,16 @@ public class GridMover : MonoBehaviour
 
     private Vector3Int gridPosition = Vector3Int.zero;
     private bool isMoving = false;
+    private PlayerKeyRing keyRing;
     private IPlayerAnimationController animationController;
 
     private void Awake()
     {
         if (board == null)
             board = FindAnyObjectByType<GridBoard>();
+
+        if (keyRing == null)
+            keyRing = GetComponent<PlayerKeyRing>();
         
         animationController = FindAnimationController();
     }
@@ -44,6 +48,9 @@ public class GridMover : MonoBehaviour
 
         Vector3Int targetGridPosition = gridPosition + direction;
         if (!CanMoveTo(targetGridPosition))
+            return;
+
+        if (!TryResolveTargetCell(targetGridPosition))
             return;
 
         StartCoroutine(MoveToCell(targetGridPosition));
@@ -73,9 +80,17 @@ public class GridMover : MonoBehaviour
     private bool CanMoveTo(Vector3Int targetGridPosition)
     {
         if (board != null)
-            return board.IsWalkable(targetGridPosition);
+            return board.IsWalkable(targetGridPosition, keyRing);
 
         return true;
+    }
+
+    private bool TryResolveTargetCell(Vector3Int targetGridPosition)
+    {
+        if (board == null)
+            return true;
+
+        return board.TryUnlockDoor(targetGridPosition, keyRing);
     }
 
     private IEnumerator MoveToCell(Vector3Int targetGridPosition)
@@ -98,6 +113,7 @@ public class GridMover : MonoBehaviour
 
         transform.position = end;
         gridPosition = targetGridPosition;
+        board?.ResolveArrival(gridPosition, keyRing);
         animationController?.EndMove();
         isMoving = false;
     }

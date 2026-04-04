@@ -35,7 +35,7 @@
 3. Execute animation
 4. Update grid position
 5. Increment move count
-6. Resolve interactions
+6. Resolve interactions such as key pickup or door unlock
 7. Return to `Idle`
 
 ---

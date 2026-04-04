@@ -78,6 +78,12 @@ Example:
 - Community levels
 - Daily challenges
 
+## Puzzle Elements
+
+- Keys can unlock matching doors
+- A consumed key opens one matching door once
+- Doors block passage until the player has the required key
+
 ---
 
 ## Change Rule

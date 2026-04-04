@@ -32,6 +32,7 @@ All services should be injected into consumers rather than located globally at r
 - `GridBoard` for board bounds, blocked cells, and tile lookup only
 - `GridGroundTile` for scene-authored playable floor cells
 - `GridObstacle` for scene-authored blocked tiles, including vertical layer coordinates
+- `GridKey`, `GridDoor`, and `PlayerKeyRing` for simple keyed-door puzzle interactions
 - `GridMover` as the Unity-facing movement adapter for the player object
 - `IPlayerAnimationController` and adapters for mapping movement intent to model-specific animator parameters
 
