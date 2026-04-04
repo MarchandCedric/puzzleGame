@@ -9,9 +9,9 @@ public class GridMover : MonoBehaviour
     [SerializeField] private GridBoard board;
 
     [Header("Grid Settings")]
-    [SerializeField] private Vector3Int startGridPosition = Vector3Int.zero;
     [SerializeField] private float moveDuration = 0.12f;
     [SerializeField] private float heightOffset = 1f;
+    [SerializeField] private bool snapToGridOnStart = true;
 
     private Vector3Int gridPosition = Vector3Int.zero;
     private bool isMoving = false;
@@ -24,8 +24,10 @@ public class GridMover : MonoBehaviour
 
     private void Start()
     {
-        gridPosition = startGridPosition;
-        transform.position = GridToWorld(gridPosition);
+        gridPosition = ResolveCurrentGridPosition();
+
+        if (snapToGridOnStart)
+            transform.position = GridToWorld(gridPosition);
     }
 
     private void Update()
@@ -101,6 +103,14 @@ public class GridMover : MonoBehaviour
             return board.GridToWorld(cell, heightOffset);
 
         return new Vector3(cell.x, cell.y + heightOffset, cell.z);
+    }
+
+    private Vector3Int ResolveCurrentGridPosition()
+    {
+        if (board != null)
+            return board.WorldToGrid(transform.position, heightOffset);
+
+        return Vector3Int.RoundToInt(new Vector3(transform.position.x, transform.position.y - heightOffset, transform.position.z));
     }
 
     private static bool WasPressedThisFrame(params KeyControl[] keys)
