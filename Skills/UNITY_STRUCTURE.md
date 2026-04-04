@@ -33,6 +33,7 @@ All services should be injected into consumers rather than located globally at r
 - `GridGroundTile` for scene-authored playable floor cells
 - `GridObstacle` for scene-authored blocked tiles, including vertical layer coordinates
 - `GridMover` as the Unity-facing movement adapter for the player object
+- `IPlayerAnimationController` and adapters for mapping movement intent to model-specific animator parameters
 
 Gameplay rules should live in testable plain C# classes when possible, with `MonoBehaviour` classes acting as Unity-facing adapters.
 Keep board-authoring data on a dedicated board object rather than scattering gameplay logic across floor pieces in the scene hierarchy.

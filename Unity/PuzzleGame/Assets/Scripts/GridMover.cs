@@ -15,11 +15,14 @@ public class GridMover : MonoBehaviour
 
     private Vector3Int gridPosition = Vector3Int.zero;
     private bool isMoving = false;
+    private IPlayerAnimationController animationController;
 
     private void Awake()
     {
         if (board == null)
             board = FindAnyObjectByType<GridBoard>();
+        
+        animationController = FindAnimationController();
     }
 
     private void Start()
@@ -78,6 +81,7 @@ public class GridMover : MonoBehaviour
     private IEnumerator MoveToCell(Vector3Int targetGridPosition)
     {
         isMoving = true;
+        animationController?.BeginMove(ToAnimationDirection(targetGridPosition - gridPosition));
 
         Vector3 start = transform.position;
         Vector3 end = GridToWorld(targetGridPosition);
@@ -94,6 +98,7 @@ public class GridMover : MonoBehaviour
 
         transform.position = end;
         gridPosition = targetGridPosition;
+        animationController?.EndMove();
         isMoving = false;
     }
 
@@ -113,6 +118,35 @@ public class GridMover : MonoBehaviour
         return Vector3Int.RoundToInt(new Vector3(transform.position.x, transform.position.y - heightOffset, transform.position.z));
     }
 
+    private IPlayerAnimationController FindAnimationController()
+    {
+        MonoBehaviour[] behaviours = GetComponentsInChildren<MonoBehaviour>(true);
+        foreach (MonoBehaviour behaviour in behaviours)
+        {
+            if (behaviour is IPlayerAnimationController controller)
+                return controller;
+        }
+
+        return null;
+    }
+
+    private static MoveAnimationDirection ToAnimationDirection(Vector3Int movement)
+    {
+        if (movement == new Vector3Int(1, 0, 0))
+            return MoveAnimationDirection.Up;
+
+        if (movement == new Vector3Int(-1, 0, 0))
+            return MoveAnimationDirection.Down;
+
+        if (movement == new Vector3Int(0, 0, 1))
+            return MoveAnimationDirection.Left;
+
+        if (movement == new Vector3Int(0, 0, -1))
+            return MoveAnimationDirection.Right;
+
+        return MoveAnimationDirection.None;
+    }
+
     private static bool WasPressedThisFrame(params KeyControl[] keys)
     {
         foreach (KeyControl key in keys)
@@ -122,5 +156,96 @@ public class GridMover : MonoBehaviour
         }
 
         return false;
+    }
+}
+
+public interface IPlayerAnimationController
+{
+    void BeginMove(MoveAnimationDirection direction);
+    void EndMove();
+}
+
+public enum MoveAnimationDirection
+{
+    None = 0,
+    Up = 1,
+    Down = 2,
+    Left = 3,
+    Right = 4
+}
+
+public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimationController
+{
+    [Header("References")]
+    [SerializeField] private Animator animator;
+
+    [Header("General Parameters")]
+    [SerializeField] private string movingBoolParameter = "IsMoving";
+
+    [Header("Directional Parameters")]
+    [SerializeField] private string walkUpParameter = "";
+    [SerializeField] private string walkDownParameter = "";
+    [SerializeField] private string walkLeftParameter = "";
+    [SerializeField] private string walkRightParameter = "";
+
+    private void Awake()
+    {
+        if (animator == null)
+            animator = GetComponent<Animator>();
+    }
+
+    public void BeginMove(MoveAnimationDirection direction)
+    {
+        if (animator == null)
+            return;
+
+        SetBoolIfConfigured(movingBoolParameter, true);
+        SetDirectionalState(direction, true);
+    }
+
+    public void EndMove()
+    {
+        if (animator == null)
+            return;
+
+        SetBoolIfConfigured(movingBoolParameter, false);
+        ClearDirectionalState();
+    }
+
+    private void SetDirectionalState(MoveAnimationDirection direction, bool value)
+    {
+        ClearDirectionalState();
+
+        switch (direction)
+        {
+            case MoveAnimationDirection.Up:
+                SetBoolIfConfigured(walkUpParameter, value);
+                break;
+            case MoveAnimationDirection.Down:
+                SetBoolIfConfigured(walkDownParameter, value);
+                break;
+            case MoveAnimationDirection.Left:
+                SetBoolIfConfigured(walkLeftParameter, value);
+                break;
+            case MoveAnimationDirection.Right:
+                SetBoolIfConfigured(walkRightParameter, value);
+                break;
+        }
+    }
+
+    private void ClearDirectionalState()
+    {
+        SetBoolIfConfigured(walkUpParameter, false);
+        SetBoolIfConfigured(walkDownParameter, false);
+        SetBoolIfConfigured(walkLeftParameter, false);
+        SetBoolIfConfigured(walkRightParameter, false);
+    }
+
+    private void SetBoolIfConfigured(string parameterName, bool value)
+    {
+        if (animator == null || string.IsNullOrWhiteSpace(parameterName))
+            return;
+
+        animator.SetBool(parameterName, value);
     }
 }
