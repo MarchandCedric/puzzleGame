@@ -47,6 +47,7 @@ Suggested root hierarchy:
 - `Main Camera`
 - `LevelRoot`
 - `GameplayRoot`
+- `BoardRoot`
 - `UIRoot`
 - `EventSystem`
 
@@ -97,6 +98,7 @@ Design goal:
 - the board stays readable
 - the player remains visible
 - the HUD does not overlap critical tiles
+- floor visuals should map cleanly to logical tile coordinates instead of being placed freehand
 
 ## UI Canvas
 
@@ -170,6 +172,7 @@ When creating a new gameplay scene in Unity:
 8. Add `EventSystem` if the scene contains Unity UI interactions.
 9. Add the scene composition root or installer for dependency injection.
 10. Verify that the board area remains readable in multiple aspect ratios.
+11. Group floor visuals under a board object and keep tile coordinates aligned with movement coordinates.
 
 ## Test Aspect Ratios
 
