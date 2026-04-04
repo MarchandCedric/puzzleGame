@@ -41,7 +41,7 @@ For each gameplay scene, start with:
 - One scene installer or bootstrap object for dependency wiring
 - One event system if the scene contains Unity UI
 
-Suggested root hierarchy:
+Suggested gameplay scene root hierarchy:
 
 - `SceneContext` or `Bootstrap`
 - `Main Camera`
@@ -50,6 +50,14 @@ Suggested root hierarchy:
 - `BoardRoot`
 - `UIRoot`
 - `EventSystem`
+
+Suggested main menu scene root hierarchy:
+
+- `MainMenuUI`
+- optional `Main Camera` for scene-authored menu visuals
+- optional `EventSystem` if not created by the menu bootstrap
+
+For the current prototype, a dedicated `MainMenuUIController` root in `MainMenu.unity` is the expected menu entry point while UI composition is still evolving.
 
 Keep scenes focused on composition, not business logic.
 
@@ -177,6 +185,15 @@ When creating a new gameplay scene in Unity:
 12. Put blocking level props under the board root and keep their grid coordinates synced from transform position or explicit inspector values so visible obstacles and movement rules stay in sync across height layers.
 13. When converting scene objects to grid cells, derive `X` from world `X`, derive grid height from world `Y` minus any visual offset, and derive `Z` from world `Z`.
 14. Keep `GridBoard` focused on `cellSize`, `layerHeight`, and `origin`; let placed ground and obstacle cells define board bounds dynamically.
+15. Add `LevelSceneMetadata` and `LevelSceneFlowController` to each gameplay scene, plus a `LevelExit` on the tile that completes the level, so completion can save stars and return to the menu.
+
+When creating or maintaining the menu flow:
+
+1. Keep the title screen and level select in `MainMenu.unity`, not inside gameplay scenes.
+2. Put `MainMenuUIController` on a dedicated `MainMenuUI` root object.
+3. Let `MainMenuUIController` rebuild the menu in edit mode as well as play mode so the menu scene remains visible while authoring.
+4. Let gameplay scenes stay focused on board, player, exits, and HUD.
+5. Use `SceneManager.LoadScene(..., LoadSceneMode.Single)` to move between `MainMenu.unity` and individual level scenes during the prototype.
 
 ## Test Aspect Ratios
 

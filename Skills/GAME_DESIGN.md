@@ -52,6 +52,14 @@ Example:
 5. Assign stars
 6. Unlock next level
 
+## Level Select Rules
+
+- Each level has `world`, `level`, and star move thresholds
+- The player starts with only `1-1` unlocked
+- A level unlocks only after the previous level is completed with at least `1` star
+- If the player has already completed a level, the best star result and best move count should be shown in level select
+- Gameplay scenes should carry their own world and level identity so the menu can target them automatically
+
 ---
 
 ## Token System
