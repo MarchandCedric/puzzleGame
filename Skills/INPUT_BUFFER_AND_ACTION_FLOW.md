@@ -31,6 +31,7 @@
 ## Flow
 
 1. Read input
+   Keyboard input and touch HUD buttons must both feed the same move-request path.
 2. Validate move
 3. Execute animation
 4. Update grid position

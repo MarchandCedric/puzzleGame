@@ -192,8 +192,10 @@ When creating or maintaining the menu flow:
 1. Keep the title screen and level select in `MainMenu.unity`, not inside gameplay scenes.
 2. Put `MainMenuUIController` on a dedicated `MainMenuUI` root object.
 3. Let `MainMenuUIController` rebuild the menu in edit mode as well as play mode so the menu scene remains visible while authoring.
-4. Let gameplay scenes stay focused on board, player, exits, and HUD.
-5. Use `SceneManager.LoadScene(..., LoadSceneMode.Single)` to move between `MainMenu.unity` and individual level scenes during the prototype.
+4. The current prototype menu should use a generic portrait phone reference resolution of `1080 x 1920`.
+5. Keep the main menu screen and the level-select screen as separate runtime pages, with a clear `Play` action to open level select and a clear `Back` action to return to the main menu.
+6. Let gameplay scenes stay focused on board, player, exits, and HUD.
+7. Use `SceneManager.LoadScene(..., LoadSceneMode.Single)` to move between `MainMenu.unity` and individual level scenes during the prototype.
 
 ## Test Aspect Ratios
 

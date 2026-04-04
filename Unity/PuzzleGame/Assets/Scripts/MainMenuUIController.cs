@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -13,18 +12,20 @@ using UnityEditor.SceneManagement;
 [ExecuteAlways]
 public class MainMenuUIController : MonoBehaviour
 {
+    private static readonly Vector2 MenuReferenceResolution = new Vector2(1080f, 1920f);
+    private static readonly Color BackgroundColor = new Color(0.08f, 0.10f, 0.14f, 1f);
+    private static readonly Color CardColor = new Color(0.12f, 0.15f, 0.20f, 0.96f);
+    private static readonly Color AccentColor = new Color(0.93f, 0.66f, 0.20f, 1f);
+    private static readonly Color SecondaryColor = new Color(0.24f, 0.30f, 0.38f, 1f);
+    private static readonly Color MutedTextColor = new Color(0.84f, 0.88f, 0.92f, 1f);
+
     [Header("Brand")]
     [SerializeField] private string gameTitle = "PuzzleGame";
     [SerializeField] private string subtitle = "Working Title";
 
     [Header("Audio")]
-    [SerializeField] private AudioClip menuMusic = null;
+    [SerializeField] private AudioClip menuMusic;
     [SerializeField] [Range(0f, 1f)] private float musicVolume = 0.6f;
-
-    [Header("Animation")]
-    [SerializeField] private float slideDuration = 0.35f;
-    [SerializeField] private float backgroundDriftAmplitude = 90f;
-    [SerializeField] private float backgroundDriftSpeed = 0.35f;
 
     [Header("Levels")]
     [SerializeField] private List<MenuLevelDefinition> levels = new List<MenuLevelDefinition>();
@@ -32,14 +33,8 @@ public class MainMenuUIController : MonoBehaviour
     private const string MenuVolumeKey = "menu.music.volume";
 
     private AudioSource audioSource;
-    private RectTransform pageTrack;
-    private RectTransform mainPage;
-    private RectTransform levelPage;
-    private RectTransform settingsPage;
-    private readonly List<RectTransform> floatingShapes = new List<RectTransform>();
-    private readonly List<Vector2> floatingBasePositions = new List<Vector2>();
-    private readonly List<Image> floatingImages = new List<Image>();
-    private Coroutine slideRoutine;
+    private GameObject mainPage;
+    private GameObject levelPage;
     private MenuProgressStore progressStore;
     private Font uiFont;
 
@@ -77,7 +72,7 @@ public class MainMenuUIController : MonoBehaviour
             if (string.Equals(scenePath, activeScenePath, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            UnityEditor.SceneManagement.SceneSetup[] setup = EditorSceneManager.GetSceneManagerSetup();
+            SceneSetup[] setup = EditorSceneManager.GetSceneManagerSetup();
             UnityEngine.SceneManagement.Scene openedScene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
 
             LevelSceneMetadata metadata = null;
@@ -117,11 +112,6 @@ public class MainMenuUIController : MonoBehaviour
     }
 #endif
 
-    private void Update()
-    {
-        AnimateBackground();
-    }
-
     [ContextMenu("Clear Menu Progress")]
     private void ClearMenuProgress()
     {
@@ -135,12 +125,12 @@ public class MainMenuUIController : MonoBehaviour
 
         levels = new List<MenuLevelDefinition>
         {
-            new MenuLevelDefinition(1, 1, 12, 16, 22, ""),
-            new MenuLevelDefinition(1, 2, 14, 18, 24, ""),
-            new MenuLevelDefinition(1, 3, 16, 20, 28, ""),
-            new MenuLevelDefinition(2, 1, 15, 20, 26, ""),
-            new MenuLevelDefinition(2, 2, 18, 24, 32, ""),
-            new MenuLevelDefinition(2, 3, 20, 27, 36, "")
+            new MenuLevelDefinition(1, 1, 12, 16, 22, string.Empty),
+            new MenuLevelDefinition(1, 2, 14, 18, 24, string.Empty),
+            new MenuLevelDefinition(1, 3, 16, 20, 28, string.Empty),
+            new MenuLevelDefinition(2, 1, 15, 20, 26, string.Empty),
+            new MenuLevelDefinition(2, 2, 18, 24, 32, string.Empty),
+            new MenuLevelDefinition(2, 3, 20, 27, 36, string.Empty)
         };
     }
 
@@ -156,11 +146,30 @@ public class MainMenuUIController : MonoBehaviour
 
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080f, 1920f);
+        scaler.referenceResolution = MenuReferenceResolution;
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         scaler.matchWidthOrHeight = 0.5f;
 
         return canvas;
+    }
+
+    private Camera EnsureMainCamera()
+    {
+        Camera existingCamera = Camera.main;
+        if (existingCamera != null)
+            return existingCamera;
+
+        GameObject cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener));
+        cameraObject.tag = "MainCamera";
+
+        Camera camera = cameraObject.GetComponent<Camera>();
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(0.04f, 0.06f, 0.09f, 1f);
+        camera.orthographic = true;
+        camera.orthographicSize = 5f;
+        camera.nearClipPlane = 0.3f;
+        camera.farClipPlane = 100f;
+        return camera;
     }
 
     private static void EnsureEventSystem()
@@ -202,13 +211,10 @@ public class MainMenuUIController : MonoBehaviour
         progressStore = new MenuProgressStore();
         uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
+        EnsureMainCamera();
         Canvas canvas = EnsureCanvas();
         EnsureEventSystem();
         audioSource = EnsureAudioSource();
-
-        floatingShapes.Clear();
-        floatingBasePositions.Clear();
-        floatingImages.Clear();
 
         BuildUi(canvas);
         RefreshLevelButtons();
@@ -221,38 +227,25 @@ public class MainMenuUIController : MonoBehaviour
     {
         ClearRuntimeUi();
 
-        GameObject root = CreateUiObject("MenuRuntimeRoot", canvas.transform);
-        RectTransform rootRect = root.GetComponent<RectTransform>();
-        Stretch(rootRect);
+        RectTransform root = CreateUiObject("MenuRuntimeRoot", canvas.transform).GetComponent<RectTransform>();
+        Stretch(root);
 
-        Image background = root.AddComponent<Image>();
-        background.color = new Color(0.08f, 0.11f, 0.15f, 1f);
+        Image background = root.gameObject.AddComponent<Image>();
+        background.color = BackgroundColor;
 
-        CreateAnimatedBackground(rootRect);
+        CreateBackgroundDecor(root);
 
-        GameObject viewport = CreateUiObject("MenuRuntimeViewport", root.transform);
-        RectTransform viewportRect = viewport.GetComponent<RectTransform>();
-        Stretch(viewportRect);
-        Mask mask = viewport.AddComponent<Mask>();
-        mask.showMaskGraphic = false;
-        viewport.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+        RectTransform safeArea = CreateUiObject("MenuRuntimeSafeArea", root).GetComponent<RectTransform>();
+        Stretch(safeArea);
+        safeArea.offsetMin = new Vector2(48f, 48f);
+        safeArea.offsetMax = new Vector2(-48f, -48f);
 
-        GameObject track = CreateUiObject("MenuRuntimePageTrack", viewport.transform);
-        pageTrack = track.GetComponent<RectTransform>();
-        pageTrack.anchorMin = Vector2.zero;
-        pageTrack.anchorMax = Vector2.one;
-        pageTrack.offsetMin = Vector2.zero;
-        pageTrack.offsetMax = new Vector2(2160f, 0f);
-        pageTrack.pivot = new Vector2(0f, 0.5f);
-        pageTrack.anchoredPosition = Vector2.zero;
+        mainPage = CreatePage("MainPage", safeArea);
+        levelPage = CreatePage("LevelPage", safeArea);
 
-        mainPage = CreatePage("MainPage", pageTrack, 0f);
-        levelPage = CreatePage("LevelPage", pageTrack, 1080f);
-        settingsPage = CreatePage("SettingsPage", pageTrack, 2160f);
-
-        BuildMainPage(mainPage);
-        BuildLevelPage(levelPage);
-        BuildSettingsPage(settingsPage);
+        BuildMainPage(mainPage.GetComponent<RectTransform>());
+        BuildLevelPage(levelPage.GetComponent<RectTransform>());
+        ShowPage(mainPage);
     }
 
     private void ClearRuntimeUi()
@@ -264,7 +257,7 @@ public class MainMenuUIController : MonoBehaviour
         List<GameObject> runtimeChildren = new List<GameObject>();
         foreach (Transform child in canvas.transform)
         {
-            if (child.name.StartsWith("MenuRuntime"))
+            if (child.name.StartsWith("MenuRuntime", StringComparison.Ordinal))
                 runtimeChildren.Add(child.gameObject);
         }
 
@@ -275,114 +268,137 @@ public class MainMenuUIController : MonoBehaviour
             else
                 DestroyImmediate(runtimeChild);
         }
-
-        floatingShapes.Clear();
-        floatingBasePositions.Clear();
-        floatingImages.Clear();
     }
 
-    private void CreateAnimatedBackground(RectTransform root)
+    private void CreateBackgroundDecor(RectTransform root)
     {
-        CreateFloatingShape(root, new Vector2(140f, 320f), new Vector2(420f, 420f), new Color(0.95f, 0.55f, 0.18f, 0.18f));
-        CreateFloatingShape(root, new Vector2(860f, 1560f), new Vector2(560f, 560f), new Color(0.18f, 0.65f, 0.58f, 0.16f));
-        CreateFloatingShape(root, new Vector2(180f, 1460f), new Vector2(300f, 300f), new Color(0.96f, 0.87f, 0.42f, 0.14f));
+        CreateDecorShape(root, new Vector2(0.10f, 0.18f), new Vector2(220f, 220f), new Color(0.93f, 0.66f, 0.20f, 0.16f));
+        CreateDecorShape(root, new Vector2(0.88f, 0.84f), new Vector2(280f, 280f), new Color(0.20f, 0.48f, 0.80f, 0.14f));
+        CreateDecorShape(root, new Vector2(0.84f, 0.12f), new Vector2(140f, 140f), new Color(1f, 1f, 1f, 0.07f));
     }
 
-    private void CreateFloatingShape(RectTransform parent, Vector2 anchoredPosition, Vector2 size, Color color)
+    private void CreateDecorShape(RectTransform parent, Vector2 anchor, Vector2 size, Color color)
     {
-        GameObject shape = CreateUiObject("MenuRuntimeShape", parent);
-        RectTransform rect = shape.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0f, 0f);
-        rect.anchorMax = new Vector2(0f, 0f);
+        RectTransform rect = CreateUiObject("MenuRuntimeDecor", parent).GetComponent<RectTransform>();
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.sizeDelta = size;
-        rect.anchoredPosition = anchoredPosition;
+        rect.anchoredPosition = Vector2.zero;
+        rect.localRotation = Quaternion.Euler(0f, 0f, 45f);
 
-        Image image = shape.AddComponent<Image>();
+        Image image = rect.gameObject.AddComponent<Image>();
         image.color = color;
-
-        floatingShapes.Add(rect);
-        floatingBasePositions.Add(anchoredPosition);
-        floatingImages.Add(image);
+        image.raycastTarget = false;
     }
 
-    private void AnimateBackground()
-    {
-        if (floatingShapes.Count == 0)
-            return;
-
-        for (int index = 0; index < floatingShapes.Count; index++)
-        {
-            float time = Time.unscaledTime * backgroundDriftSpeed + index;
-            RectTransform rect = floatingShapes[index];
-            Vector2 basePosition = floatingBasePositions[index];
-            rect.anchoredPosition = basePosition + new Vector2(Mathf.Sin(time) * backgroundDriftAmplitude, Mathf.Cos(time * 1.2f) * backgroundDriftAmplitude);
-
-            Color color = floatingImages[index].color;
-            color.a = 0.12f + (Mathf.Sin(time * 0.85f) + 1f) * 0.04f;
-            floatingImages[index].color = color;
-        }
-    }
-
-    private RectTransform CreatePage(string name, RectTransform parent, float anchoredX)
+    private GameObject CreatePage(string name, RectTransform parent)
     {
         GameObject pageObject = CreateUiObject(name, parent);
-        RectTransform rect = pageObject.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0f, 0f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 0.5f);
-        rect.sizeDelta = new Vector2(1080f, 0f);
-        rect.anchoredPosition = new Vector2(anchoredX, 0f);
-        return rect;
+        Stretch(pageObject.GetComponent<RectTransform>());
+        return pageObject;
     }
 
     private void BuildMainPage(RectTransform page)
     {
-        CreateLabel(page, "Title", gameTitle, 104, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(540f, 1450f), new Vector2(900f, 120f), Color.white);
-        CreateLabel(page, "Subtitle", subtitle, 38, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(540f, 1360f), new Vector2(700f, 60f), new Color(0.93f, 0.82f, 0.63f));
+        VerticalLayoutGroup layout = page.gameObject.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(0, 0, 80, 56);
+        layout.spacing = 28;
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
 
-        RectTransform card = CreateCard(page, "MenuCard", new Vector2(540f, 860f), new Vector2(700f, 540f));
-        CreateButton(card, "PlayButton", "Play", new Vector2(0f, 120f), new Vector2(420f, 90f), new Color(0.93f, 0.66f, 0.18f), () => SlideTo(levelPage));
-        CreateButton(card, "SettingsButton", "Settings", new Vector2(0f, 0f), new Vector2(420f, 90f), new Color(0.20f, 0.55f, 0.55f), () => SlideTo(settingsPage));
-        CreateButton(card, "QuitButton", "Quit", new Vector2(0f, -120f), new Vector2(420f, 90f), new Color(0.30f, 0.32f, 0.38f), QuitGame);
+        AddFlexibleSpacer(page, 1f);
 
-        CreateLabel(page, "Hint", "Move efficiently to earn stars and unlock the next level.", 28, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(540f, 240f), new Vector2(760f, 80f), new Color(0.87f, 0.89f, 0.92f));
+        RectTransform titleCard = CreateCenteredCard(page, "MainTitleCard", 780f, 420f);
+        VerticalLayoutGroup titleLayout = titleCard.gameObject.AddComponent<VerticalLayoutGroup>();
+        titleLayout.padding = new RectOffset(56, 56, 56, 56);
+        titleLayout.spacing = 18;
+        titleLayout.childAlignment = TextAnchor.UpperCenter;
+        titleLayout.childControlWidth = true;
+        titleLayout.childControlHeight = false;
+        titleLayout.childForceExpandWidth = true;
+        titleLayout.childForceExpandHeight = false;
+
+        CreateLayoutLabel(titleCard, "Kicker", "PUZZLE PROTOTYPE", 28, FontStyle.Bold, TextAnchor.MiddleCenter, AccentColor, 40f);
+        CreateLayoutLabel(titleCard, "Title", gameTitle, 96, FontStyle.Bold, TextAnchor.MiddleCenter, Color.white, 110f);
+        CreateLayoutLabel(titleCard, "Subtitle", subtitle, 34, FontStyle.Normal, TextAnchor.MiddleCenter, MutedTextColor, 44f);
+        CreateLayoutLabel(titleCard, "Body", "A clean main menu with a separate level selection screen.", 28, FontStyle.Normal, TextAnchor.MiddleCenter, MutedTextColor, 76f);
+
+        RectTransform actionsCard = CreateCenteredCard(page, "MainActionsCard", 780f, 320f);
+        VerticalLayoutGroup actionsLayout = actionsCard.gameObject.AddComponent<VerticalLayoutGroup>();
+        actionsLayout.padding = new RectOffset(56, 56, 48, 48);
+        actionsLayout.spacing = 18;
+        actionsLayout.childAlignment = TextAnchor.MiddleCenter;
+        actionsLayout.childControlWidth = true;
+        actionsLayout.childControlHeight = false;
+        actionsLayout.childForceExpandWidth = true;
+        actionsLayout.childForceExpandHeight = false;
+
+        CreateLayoutLabel(actionsCard, "ActionTitle", "Main Menu", 38, FontStyle.Bold, TextAnchor.MiddleCenter, Color.white, 48f);
+        CreateMenuButton(actionsCard, "PlayButton", "Play", "Open the level selection screen.", AccentColor, () => ShowPage(levelPage), 96f);
+        CreateMenuButton(actionsCard, "QuitButton", "Quit", "Close the prototype.", SecondaryColor, QuitGame, 96f);
+
+        CreateLayoutLabel(page, "FooterHint", "Tap Play to move to the level menu.", 24, FontStyle.Normal, TextAnchor.MiddleCenter, MutedTextColor, 36f);
+        AddFlexibleSpacer(page, 1f);
     }
 
     private void BuildLevelPage(RectTransform page)
     {
-        CreateLabel(page, "LevelTitle", "Select Level", 82, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(540f, 1680f), new Vector2(800f, 100f), Color.white);
-        CreateLabel(page, "LevelSubtitle", "Earn at least one star to unlock the next level.", 28, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(540f, 1605f), new Vector2(860f, 50f), new Color(0.88f, 0.90f, 0.93f));
-        CreateButton(page, "BackButton", "Back", new Vector2(150f, 1760f), new Vector2(180f, 70f), new Color(0.25f, 0.28f, 0.35f), () => SlideTo(mainPage));
+        VerticalLayoutGroup layout = page.gameObject.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(0, 0, 36, 36);
+        layout.spacing = 24;
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
 
-        RectTransform listRoot = CreateCard(page, "LevelListCard", new Vector2(540f, 860f), new Vector2(860f, 1180f));
-        GridLayoutGroup grid = listRoot.gameObject.AddComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(380f, 170f);
-        grid.spacing = new Vector2(24f, 24f);
-        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        grid.constraintCount = 2;
-        grid.padding = new RectOffset(32, 32, 32, 32);
+        RectTransform headerCard = CreateCenteredCard(page, "LevelHeaderCard", 900f, 220f);
+        VerticalLayoutGroup headerLayout = headerCard.gameObject.AddComponent<VerticalLayoutGroup>();
+        headerLayout.padding = new RectOffset(40, 40, 32, 32);
+        headerLayout.spacing = 12;
+        headerLayout.childAlignment = TextAnchor.UpperCenter;
+        headerLayout.childControlWidth = true;
+        headerLayout.childControlHeight = false;
+        headerLayout.childForceExpandWidth = true;
+        headerLayout.childForceExpandHeight = false;
+
+        CreateMenuButton(headerCard, "BackButton", "Back", "Return to the main menu.", SecondaryColor, () => ShowPage(mainPage), 82f);
+        CreateLayoutLabel(headerCard, "LevelTitle", "Level Select", 56, FontStyle.Bold, TextAnchor.MiddleCenter, Color.white, 64f);
+        CreateLayoutLabel(headerCard, "LevelSubtitle", "Choose a stage below.", 26, FontStyle.Normal, TextAnchor.MiddleCenter, MutedTextColor, 36f);
+
+        RectTransform listCard = CreateCenteredCard(page, "LevelListCard", 900f, 1420f);
+        VerticalLayoutGroup listCardLayout = listCard.gameObject.AddComponent<VerticalLayoutGroup>();
+        listCardLayout.padding = new RectOffset(32, 32, 32, 32);
+        listCardLayout.spacing = 18;
+        listCardLayout.childAlignment = TextAnchor.UpperCenter;
+        listCardLayout.childControlWidth = true;
+        listCardLayout.childControlHeight = true;
+        listCardLayout.childForceExpandWidth = true;
+        listCardLayout.childForceExpandHeight = false;
+
+        CreateLayoutLabel(listCard, "ListHint", "Unlocked levels can be opened immediately.", 24, FontStyle.Normal, TextAnchor.MiddleCenter, MutedTextColor, 36f);
+        RectTransform levelListContent = CreateScrollContent(listCard, new Vector2(836f, 1290f));
+
+        int levelIndex = 0;
+        int currentWorld = int.MinValue;
+        RectTransform worldSection = null;
 
         for (int index = 0; index < levels.Count; index++)
         {
-            CreateLevelButton(listRoot, levels[index], index);
+            MenuLevelDefinition level = levels[index];
+            if (level.World != currentWorld)
+            {
+                currentWorld = level.World;
+                worldSection = CreateWorldSection(levelListContent, currentWorld);
+            }
+
+            CreateLevelButton(worldSection, level, levelIndex);
+            levelIndex++;
         }
-    }
-
-    private void BuildSettingsPage(RectTransform page)
-    {
-        CreateLabel(page, "SettingsTitle", "Settings", 82, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(540f, 1680f), new Vector2(700f, 100f), Color.white);
-        CreateButton(page, "SettingsBackButton", "Back", new Vector2(150f, 1760f), new Vector2(180f, 70f), new Color(0.25f, 0.28f, 0.35f), () => SlideTo(mainPage));
-
-        RectTransform card = CreateCard(page, "SettingsCard", new Vector2(540f, 920f), new Vector2(760f, 480f));
-        CreateLabel(card, "MusicLabel", "Music Volume", 34, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(0f, 120f), new Vector2(420f, 50f), Color.white);
-        Slider slider = CreateSlider(card, "MusicSlider", new Vector2(0f, 20f), new Vector2(480f, 40f));
-        slider.minValue = 0f;
-        slider.maxValue = 1f;
-        slider.value = PlayerPrefs.GetFloat(MenuVolumeKey, musicVolume);
-        slider.onValueChanged.AddListener(SetMusicVolume);
-
-        CreateLabel(card, "SettingsInfo", "More settings can plug in here later without changing the menu flow.", 26, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(0f, -110f), new Vector2(540f, 90f), new Color(0.86f, 0.88f, 0.92f));
     }
 
     private void RefreshLevelButtons()
@@ -390,7 +406,7 @@ public class MainMenuUIController : MonoBehaviour
         Button[] buttons = GetComponentsInChildren<Button>(true);
         foreach (Button button in buttons)
         {
-            if (!button.name.StartsWith("LevelButton_"))
+            if (!button.name.StartsWith("LevelButton_", StringComparison.Ordinal))
                 continue;
 
             string[] tokens = button.name.Split('_');
@@ -405,19 +421,28 @@ public class MainMenuUIController : MonoBehaviour
 
             Image buttonImage = button.GetComponent<Image>();
             if (buttonImage != null)
-                buttonImage.color = unlocked ? new Color(0.20f, 0.24f, 0.31f) : new Color(0.14f, 0.15f, 0.18f);
+                buttonImage.color = unlocked ? new Color(0.11f, 0.18f, 0.24f, 0.98f) : new Color(0.10f, 0.11f, 0.13f, 0.96f);
 
             Text[] texts = button.GetComponentsInChildren<Text>(true);
             foreach (Text text in texts)
             {
-                if (text.name == "Title")
-                    text.text = $"World {level.World} - {level.Level}";
-                else if (text.name == "Thresholds")
-                    text.text = $"3* {level.ThreeStarMoves}  2* {level.TwoStarMoves}  1* {level.OneStarMoves}";
-                else if (text.name == "Result")
-                    text.text = unlocked
-                        ? (result.IsCompleted ? $"Best: {result.Stars} star(s) in {result.BestMoves} moves" : "Unplayed")
-                        : "Locked";
+                switch (text.name)
+                {
+                    case "BadgeText":
+                        text.text = $"W{level.World}";
+                        break;
+                    case "Title":
+                        text.text = $"Stage {level.Level}";
+                        break;
+                    case "Thresholds":
+                        text.text = $"3* {level.ThreeStarMoves}   2* {level.TwoStarMoves}   1* {level.OneStarMoves}";
+                        break;
+                    case "Result":
+                        text.text = unlocked
+                            ? (result.IsCompleted ? $"Best: {GetStarString(result.Stars)}  {result.BestMoves} moves" : "Not cleared yet")
+                            : "Locked";
+                        break;
+                }
             }
         }
     }
@@ -434,7 +459,7 @@ public class MainMenuUIController : MonoBehaviour
             return;
         }
 
-        Debug.Log($"Level selected: World {level.World}-{level.Level}. Assign a scene name later to load gameplay.");
+        Debug.Log($"Level selected: World {level.World}-{level.Level}. Assign a scene path to load gameplay.");
     }
 
     private void QuitGame()
@@ -446,172 +471,274 @@ public class MainMenuUIController : MonoBehaviour
 #endif
     }
 
-    private void SetMusicVolume(float value)
+    private void ShowPage(GameObject pageToShow)
     {
-        musicVolume = value;
-        PlayerPrefs.SetFloat(MenuVolumeKey, value);
-        PlayerPrefs.Save();
+        if (mainPage != null)
+            mainPage.SetActive(pageToShow == mainPage);
 
-        if (audioSource != null)
-            audioSource.volume = value;
-    }
-
-    private void SlideTo(RectTransform targetPage)
-    {
-        float targetX = -targetPage.anchoredPosition.x;
-
-        if (slideRoutine != null)
-            StopCoroutine(slideRoutine);
-
-        slideRoutine = StartCoroutine(SlidePageTrack(targetX));
-    }
-
-    private IEnumerator SlidePageTrack(float targetX)
-    {
-        Vector2 start = pageTrack.anchoredPosition;
-        Vector2 end = new Vector2(targetX, start.y);
-        float elapsed = 0f;
-
-        while (elapsed < slideDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(elapsed / slideDuration);
-            float eased = 1f - Mathf.Pow(1f - t, 3f);
-            pageTrack.anchoredPosition = Vector2.Lerp(start, end, eased);
-            yield return null;
-        }
-
-        pageTrack.anchoredPosition = end;
-        slideRoutine = null;
-    }
-
-    private RectTransform CreateCard(RectTransform parent, string name, Vector2 anchoredPosition, Vector2 size)
-    {
-        GameObject card = CreateUiObject(name, parent);
-        RectTransform rect = card.GetComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = size;
-        rect.anchoredPosition = anchoredPosition;
-
-        Image image = card.AddComponent<Image>();
-        image.color = new Color(0.10f, 0.14f, 0.18f, 0.92f);
-
-        return rect;
-    }
-
-    private Button CreateButton(RectTransform parent, string name, string label, Vector2 anchoredPosition, Vector2 size, Color color, UnityEngine.Events.UnityAction onClick)
-    {
-        GameObject buttonObject = CreateUiObject(name, parent);
-        RectTransform rect = buttonObject.GetComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = size;
-        rect.anchoredPosition = anchoredPosition;
-
-        Image image = buttonObject.AddComponent<Image>();
-        image.color = color;
-
-        Button button = buttonObject.AddComponent<Button>();
-        button.targetGraphic = image;
-        button.onClick.AddListener(onClick);
-
-        CreateLabel(rect, "Label", label, 34, FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero, size, Color.white);
-        return button;
+        if (levelPage != null)
+            levelPage.SetActive(pageToShow == levelPage);
     }
 
     private void CreateLevelButton(RectTransform parent, MenuLevelDefinition level, int index)
     {
         GameObject buttonObject = CreateUiObject($"LevelButton_{index}", parent);
+        LayoutElement layoutElement = buttonObject.AddComponent<LayoutElement>();
+        layoutElement.preferredWidth = 780f;
+        layoutElement.preferredHeight = 150f;
+
         Image image = buttonObject.AddComponent<Image>();
-        image.color = new Color(0.20f, 0.24f, 0.31f);
+        image.color = new Color(0.11f, 0.18f, 0.24f, 0.98f);
+        AddShadow(image, new Color(0f, 0f, 0f, 0.20f), new Vector2(0f, -6f));
 
         Button button = buttonObject.AddComponent<Button>();
         button.targetGraphic = image;
         button.onClick.AddListener(() => OnLevelPressed(index));
 
-        VerticalLayoutGroup layout = buttonObject.AddComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(18, 18, 18, 18);
-        layout.spacing = 10;
-        layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.childForceExpandHeight = false;
-        layout.childForceExpandWidth = true;
+        HorizontalLayoutGroup rowLayout = buttonObject.AddComponent<HorizontalLayoutGroup>();
+        rowLayout.padding = new RectOffset(28, 28, 20, 20);
+        rowLayout.spacing = 18;
+        rowLayout.childAlignment = TextAnchor.MiddleLeft;
+        rowLayout.childControlHeight = true;
+        rowLayout.childControlWidth = false;
+        rowLayout.childForceExpandHeight = false;
+        rowLayout.childForceExpandWidth = false;
 
-        ContentSizeFitter fitter = buttonObject.AddComponent<ContentSizeFitter>();
+        RectTransform badge = CreateFixedChip(buttonObject.transform, "Badge", 92f, 92f, AccentColor);
+        CreateCenteredText(badge, "BadgeText", $"W{level.World}", 24, FontStyle.Bold, new Color(0.12f, 0.14f, 0.16f));
+
+        RectTransform textColumn = CreateLayoutContainer(buttonObject.transform, "TextColumn");
+        LayoutElement textColumnLayout = textColumn.gameObject.AddComponent<LayoutElement>();
+        textColumnLayout.preferredWidth = 470f;
+        textColumnLayout.flexibleWidth = 1f;
+        VerticalLayoutGroup textLayout = textColumn.gameObject.AddComponent<VerticalLayoutGroup>();
+        textLayout.spacing = 8;
+        textLayout.childAlignment = TextAnchor.MiddleLeft;
+        textLayout.childControlWidth = true;
+        textLayout.childControlHeight = false;
+        textLayout.childForceExpandWidth = true;
+        textLayout.childForceExpandHeight = false;
+        CreateLayoutLabel(textColumn, "Title", $"Stage {level.Level}", 32, FontStyle.Bold, TextAnchor.MiddleLeft, Color.white, 40f);
+        CreateLayoutLabel(textColumn, "Thresholds", $"3* {level.ThreeStarMoves}   2* {level.TwoStarMoves}   1* {level.OneStarMoves}", 22, FontStyle.Normal, TextAnchor.MiddleLeft, AccentColor, 32f);
+        CreateLayoutLabel(textColumn, "Result", "Not cleared yet", 20, FontStyle.Normal, TextAnchor.MiddleLeft, MutedTextColor, 28f);
+
+        RectTransform actionColumn = CreateLayoutContainer(buttonObject.transform, "ActionColumn");
+        LayoutElement actionLayout = actionColumn.gameObject.AddComponent<LayoutElement>();
+        actionLayout.preferredWidth = 150f;
+        VerticalLayoutGroup actionColumnLayout = actionColumn.gameObject.AddComponent<VerticalLayoutGroup>();
+        actionColumnLayout.childAlignment = TextAnchor.MiddleCenter;
+        actionColumnLayout.childControlWidth = true;
+        actionColumnLayout.childControlHeight = false;
+        actionColumnLayout.childForceExpandWidth = true;
+        actionColumnLayout.childForceExpandHeight = true;
+        CreateLayoutLabel(actionColumn, "ActionHint", "Tap to enter", 20, FontStyle.Bold, TextAnchor.MiddleCenter, Color.white, 34f);
+    }
+
+    private RectTransform CreateScrollContent(RectTransform parent, Vector2 size)
+    {
+        RectTransform viewportRect = CreateUiObject("Viewport", parent).GetComponent<RectTransform>();
+        LayoutElement viewportLayout = viewportRect.gameObject.AddComponent<LayoutElement>();
+        viewportLayout.preferredWidth = size.x;
+        viewportLayout.preferredHeight = size.y;
+
+        Image viewportImage = viewportRect.gameObject.AddComponent<Image>();
+        viewportImage.color = new Color(0f, 0f, 0f, 0.02f);
+        viewportRect.gameObject.AddComponent<RectMask2D>();
+
+        RectTransform contentRect = CreateUiObject("Content", viewportRect).GetComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.sizeDelta = Vector2.zero;
+        contentRect.anchoredPosition = Vector2.zero;
+
+        VerticalLayoutGroup contentLayout = contentRect.gameObject.AddComponent<VerticalLayoutGroup>();
+        contentLayout.padding = new RectOffset(0, 0, 0, 24);
+        contentLayout.spacing = 26f;
+        contentLayout.childAlignment = TextAnchor.UpperCenter;
+        contentLayout.childControlHeight = true;
+        contentLayout.childControlWidth = true;
+        contentLayout.childForceExpandHeight = false;
+        contentLayout.childForceExpandWidth = true;
+
+        ContentSizeFitter contentFitter = contentRect.gameObject.AddComponent<ContentSizeFitter>();
+        contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        contentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+        ScrollRect scrollRect = parent.gameObject.AddComponent<ScrollRect>();
+        scrollRect.viewport = viewportRect;
+        scrollRect.content = contentRect;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 32f;
+
+        return contentRect;
+    }
+
+    private RectTransform CreateWorldSection(RectTransform parent, int world)
+    {
+        RectTransform section = CreateLayoutContainer(parent, $"World_{world}");
+        VerticalLayoutGroup sectionLayout = section.gameObject.AddComponent<VerticalLayoutGroup>();
+        sectionLayout.spacing = 14f;
+        sectionLayout.childAlignment = TextAnchor.UpperCenter;
+        sectionLayout.childControlHeight = true;
+        sectionLayout.childControlWidth = true;
+        sectionLayout.childForceExpandHeight = false;
+        sectionLayout.childForceExpandWidth = true;
+
+        ContentSizeFitter fitter = section.gameObject.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-        fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
-        CreateLabel(buttonObject.GetComponent<RectTransform>(), "Title", $"World {level.World} - {level.Level}", 28, FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(320f, 36f), Color.white);
-        CreateLabel(buttonObject.GetComponent<RectTransform>(), "Thresholds", $"3* {level.ThreeStarMoves}  2* {level.TwoStarMoves}  1* {level.OneStarMoves}", 22, FontStyle.Normal, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(320f, 32f), new Color(0.94f, 0.85f, 0.55f));
-        CreateLabel(buttonObject.GetComponent<RectTransform>(), "Result", "Unplayed", 20, FontStyle.Normal, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(320f, 28f), new Color(0.86f, 0.89f, 0.93f));
+        RectTransform header = CreateCenteredCard(section, $"World_{world}_Header", 840f, 88f);
+        LayoutElement headerLayout = header.gameObject.AddComponent<LayoutElement>();
+        headerLayout.preferredWidth = 840f;
+        headerLayout.preferredHeight = 88f;
+        HorizontalLayoutGroup headerRow = header.gameObject.AddComponent<HorizontalLayoutGroup>();
+        headerRow.padding = new RectOffset(28, 28, 18, 18);
+        headerRow.spacing = 16;
+        headerRow.childAlignment = TextAnchor.MiddleLeft;
+        headerRow.childControlWidth = false;
+        headerRow.childControlHeight = false;
+        headerRow.childForceExpandWidth = false;
+        headerRow.childForceExpandHeight = false;
+        CreateLayoutLabel(header, "WorldLabel", $"World {world}", 32, FontStyle.Bold, TextAnchor.MiddleLeft, Color.white, 40f, 200f);
+        CreateLayoutLabel(header, "WorldHint", "Clear stages to unlock what comes next.", 20, FontStyle.Normal, TextAnchor.MiddleLeft, MutedTextColor, 30f, 520f);
+
+        RectTransform list = CreateLayoutContainer(section, $"World_{world}_Levels");
+        VerticalLayoutGroup listLayout = list.gameObject.AddComponent<VerticalLayoutGroup>();
+        listLayout.spacing = 14f;
+        listLayout.childAlignment = TextAnchor.UpperCenter;
+        listLayout.childControlHeight = true;
+        listLayout.childControlWidth = true;
+        listLayout.childForceExpandHeight = false;
+        listLayout.childForceExpandWidth = true;
+
+        ContentSizeFitter listFitter = list.gameObject.AddComponent<ContentSizeFitter>();
+        listFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        listFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        return list;
     }
 
-    private Slider CreateSlider(RectTransform parent, string name, Vector2 anchoredPosition, Vector2 size)
+    private RectTransform CreateCenteredCard(Transform parent, string name, float width, float height)
     {
-        GameObject sliderObject = CreateUiObject(name, parent);
-        RectTransform rect = sliderObject.GetComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = size;
-        rect.anchoredPosition = anchoredPosition;
+        RectTransform rect = CreateUiObject(name, parent).GetComponent<RectTransform>();
+        LayoutElement layout = rect.gameObject.AddComponent<LayoutElement>();
+        layout.preferredWidth = width;
+        layout.preferredHeight = height;
+        layout.flexibleWidth = 0f;
 
-        Slider slider = sliderObject.AddComponent<Slider>();
-
-        GameObject background = CreateUiObject("Background", rect);
-        RectTransform backgroundRect = background.GetComponent<RectTransform>();
-        Stretch(backgroundRect);
-        background.AddComponent<Image>().color = new Color(0.19f, 0.20f, 0.24f, 1f);
-
-        GameObject fillArea = CreateUiObject("Fill Area", rect);
-        RectTransform fillAreaRect = fillArea.GetComponent<RectTransform>();
-        fillAreaRect.anchorMin = new Vector2(0f, 0.25f);
-        fillAreaRect.anchorMax = new Vector2(1f, 0.75f);
-        fillAreaRect.offsetMin = new Vector2(16f, 0f);
-        fillAreaRect.offsetMax = new Vector2(-16f, 0f);
-
-        GameObject fill = CreateUiObject("Fill", fillAreaRect);
-        RectTransform fillRect = fill.GetComponent<RectTransform>();
-        Stretch(fillRect);
-        Image fillImage = fill.AddComponent<Image>();
-        fillImage.color = new Color(0.95f, 0.67f, 0.18f, 1f);
-
-        GameObject handleSlideArea = CreateUiObject("Handle Slide Area", rect);
-        RectTransform handleAreaRect = handleSlideArea.GetComponent<RectTransform>();
-        Stretch(handleAreaRect);
-        handleAreaRect.offsetMin = new Vector2(16f, 0f);
-        handleAreaRect.offsetMax = new Vector2(-16f, 0f);
-
-        GameObject handle = CreateUiObject("Handle", handleAreaRect);
-        RectTransform handleRect = handle.GetComponent<RectTransform>();
-        handleRect.sizeDelta = new Vector2(36f, 36f);
-        Image handleImage = handle.AddComponent<Image>();
-        handleImage.color = new Color(0.98f, 0.96f, 0.90f, 1f);
-
-        slider.targetGraphic = handleImage;
-        slider.fillRect = fillRect;
-        slider.handleRect = handleRect;
-        slider.direction = Slider.Direction.LeftToRight;
-
-        return slider;
+        Image image = rect.gameObject.AddComponent<Image>();
+        image.color = CardColor;
+        AddShadow(image, new Color(0f, 0f, 0f, 0.22f), new Vector2(0f, -8f));
+        return rect;
     }
 
-    private Text CreateLabel(RectTransform parent, string name, string text, int fontSize, FontStyle fontStyle, TextAnchor alignment, Vector2 anchoredPosition, Vector2 size, Color color)
+    private RectTransform CreateLayoutContainer(Transform parent, string name)
     {
-        GameObject labelObject = CreateUiObject(name, parent);
-        RectTransform rect = labelObject.GetComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = size;
-        rect.anchoredPosition = anchoredPosition;
+        return CreateUiObject(name, parent).GetComponent<RectTransform>();
+    }
 
-        Text label = labelObject.AddComponent<Text>();
+    private void AddFlexibleSpacer(RectTransform parent, float flexibleHeight)
+    {
+        RectTransform spacer = CreateLayoutContainer(parent, "Spacer");
+        LayoutElement layout = spacer.gameObject.AddComponent<LayoutElement>();
+        layout.flexibleHeight = flexibleHeight;
+    }
+
+    private Text CreateLayoutLabel(Transform parent, string name, string text, int fontSize, FontStyle fontStyle, TextAnchor alignment, Color color, float preferredHeight)
+    {
+        return CreateLayoutLabel(parent, name, text, fontSize, fontStyle, alignment, color, preferredHeight, -1f);
+    }
+
+    private Text CreateLayoutLabel(Transform parent, string name, string text, int fontSize, FontStyle fontStyle, TextAnchor alignment, Color color, float preferredHeight, float preferredWidth)
+    {
+        RectTransform rect = CreateUiObject(name, parent).GetComponent<RectTransform>();
+        LayoutElement layout = rect.gameObject.AddComponent<LayoutElement>();
+        layout.preferredHeight = preferredHeight;
+        if (preferredWidth > 0f)
+            layout.preferredWidth = preferredWidth;
+
+        Text label = rect.gameObject.AddComponent<Text>();
         label.font = uiFont;
         label.text = text;
         label.fontSize = fontSize;
         label.fontStyle = fontStyle;
         label.alignment = alignment;
         label.color = color;
+        AddShadow(label, new Color(0f, 0f, 0f, 0.24f), new Vector2(0f, -2f));
         return label;
+    }
+
+    private Button CreateMenuButton(Transform parent, string name, string label, string detail, Color color, UnityEngine.Events.UnityAction onClick, float height)
+    {
+        RectTransform rect = CreateUiObject(name, parent).GetComponent<RectTransform>();
+        LayoutElement layout = rect.gameObject.AddComponent<LayoutElement>();
+        layout.preferredHeight = height;
+
+        Image image = rect.gameObject.AddComponent<Image>();
+        image.color = color;
+        AddShadow(image, new Color(0f, 0f, 0f, 0.22f), new Vector2(0f, -6f));
+
+        Button button = rect.gameObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        button.onClick.AddListener(onClick);
+
+        VerticalLayoutGroup contentLayout = rect.gameObject.AddComponent<VerticalLayoutGroup>();
+        contentLayout.padding = new RectOffset(24, 24, 14, 14);
+        contentLayout.spacing = 4;
+        contentLayout.childAlignment = TextAnchor.MiddleCenter;
+        contentLayout.childControlWidth = true;
+        contentLayout.childControlHeight = false;
+        contentLayout.childForceExpandWidth = true;
+        contentLayout.childForceExpandHeight = false;
+
+        CreateLayoutLabel(rect, "Label", label, 34, FontStyle.Bold, TextAnchor.MiddleCenter, Color.white, 40f);
+        CreateLayoutLabel(rect, "Detail", detail, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Color(0.95f, 0.97f, 0.99f, 0.94f), 24f);
+        return button;
+    }
+
+    private RectTransform CreateFixedChip(Transform parent, string name, float width, float height, Color color)
+    {
+        RectTransform rect = CreateUiObject(name, parent).GetComponent<RectTransform>();
+        LayoutElement layout = rect.gameObject.AddComponent<LayoutElement>();
+        layout.preferredWidth = width;
+        layout.preferredHeight = height;
+        layout.minWidth = width;
+
+        Image image = rect.gameObject.AddComponent<Image>();
+        image.color = color;
+        AddShadow(image, new Color(0f, 0f, 0f, 0.18f), new Vector2(0f, -4f));
+        return rect;
+    }
+
+    private Text CreateCenteredText(RectTransform parent, string name, string text, int fontSize, FontStyle fontStyle, Color color)
+    {
+        RectTransform rect = CreateUiObject(name, parent).GetComponent<RectTransform>();
+        Stretch(rect);
+
+        Text label = rect.gameObject.AddComponent<Text>();
+        label.font = uiFont;
+        label.text = text;
+        label.fontSize = fontSize;
+        label.fontStyle = fontStyle;
+        label.alignment = TextAnchor.MiddleCenter;
+        label.color = color;
+        return label;
+    }
+
+    private static string GetStarString(int stars)
+    {
+        stars = Mathf.Clamp(stars, 0, 3);
+        return new string('*', stars) + new string('-', 3 - stars);
+    }
+
+    private static void AddShadow(Graphic graphic, Color color, Vector2 distance)
+    {
+        Shadow shadow = graphic.gameObject.AddComponent<Shadow>();
+        shadow.effectColor = color;
+        shadow.effectDistance = distance;
     }
 
     private static GameObject CreateUiObject(string name, Transform parent)

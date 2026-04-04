@@ -51,14 +51,27 @@ public class GridMover : MonoBehaviour
         if (direction == Vector3Int.zero)
             return;
 
-        Vector3Int targetGridPosition = gridPosition + direction;
-        if (!CanMoveTo(targetGridPosition))
-            return;
+        TryStartMove(direction);
+    }
 
-        if (!TryResolveTargetCell(targetGridPosition))
-            return;
+    public void RequestMoveUp()
+    {
+        TryStartMove(new Vector3Int(1, 0, 0));
+    }
 
-        StartCoroutine(MoveToCell(targetGridPosition));
+    public void RequestMoveDown()
+    {
+        TryStartMove(new Vector3Int(-1, 0, 0));
+    }
+
+    public void RequestMoveLeft()
+    {
+        TryStartMove(new Vector3Int(0, 0, 1));
+    }
+
+    public void RequestMoveRight()
+    {
+        TryStartMove(new Vector3Int(0, 0, -1));
     }
 
     private Vector3Int ReadMoveInput()
@@ -96,6 +109,21 @@ public class GridMover : MonoBehaviour
             return true;
 
         return board.TryUnlockDoor(targetGridPosition, keyRing);
+    }
+
+    private void TryStartMove(Vector3Int direction)
+    {
+        if (isMoving || direction == Vector3Int.zero)
+            return;
+
+        Vector3Int targetGridPosition = gridPosition + direction;
+        if (!CanMoveTo(targetGridPosition))
+            return;
+
+        if (!TryResolveTargetCell(targetGridPosition))
+            return;
+
+        StartCoroutine(MoveToCell(targetGridPosition));
     }
 
     private IEnumerator MoveToCell(Vector3Int targetGridPosition)
