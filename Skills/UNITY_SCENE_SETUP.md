@@ -99,6 +99,7 @@ Design goal:
 - the player remains visible
 - the HUD does not overlap critical tiles
 - floor visuals should map cleanly to logical tile coordinates instead of being placed freehand
+- playable extents should come from authored ground tiles rather than a separate static size box
 
 ## UI Canvas
 
@@ -172,7 +173,10 @@ When creating a new gameplay scene in Unity:
 8. Add `EventSystem` if the scene contains Unity UI interactions.
 9. Add the scene composition root or installer for dependency injection.
 10. Verify that the board area remains readable in multiple aspect ratios.
-11. Group floor visuals under a board object and keep tile coordinates aligned with movement coordinates.
+11. Group floor visuals near the board root and use `GridGroundTile` on playable floor pieces so movement only allows cells that actually have ground.
+12. Put blocking level props under the board root and keep their grid coordinates synced from transform position or explicit inspector values so visible obstacles and movement rules stay in sync across height layers.
+13. When converting scene objects to grid cells, derive `X` from world `X`, derive grid height from world `Y` minus any visual offset, and derive `Z` from world `Z`.
+14. Keep `GridBoard` focused on `cellSize`, `layerHeight`, and `origin`; let placed ground and obstacle cells define board bounds dynamically.
 
 ## Test Aspect Ratios
 

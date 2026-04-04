@@ -9,21 +9,17 @@ public class GridMover : MonoBehaviour
     [SerializeField] private GridBoard board;
 
     [Header("Grid Settings")]
-    [SerializeField] private Vector2Int startGridPosition = Vector2Int.zero;
-    [SerializeField] private float cellSize = 1f;
-    [SerializeField] private float worldHeight = 1f;
+    [SerializeField] private Vector3Int startGridPosition = Vector3Int.zero;
     [SerializeField] private float moveDuration = 0.12f;
+    [SerializeField] private float heightOffset = 1f;
 
-    private Vector2Int gridPosition = Vector2Int.zero;
+    private Vector3Int gridPosition = Vector3Int.zero;
     private bool isMoving = false;
 
     private void Awake()
     {
         if (board == null)
             board = FindAnyObjectByType<GridBoard>();
-
-        if (board != null)
-            cellSize = board.CellSize;
     }
 
     private void Start()
@@ -37,39 +33,39 @@ public class GridMover : MonoBehaviour
         if (isMoving)
             return;
 
-        Vector2Int direction = ReadMoveInput();
-        if (direction == Vector2Int.zero)
+        Vector3Int direction = ReadMoveInput();
+        if (direction == Vector3Int.zero)
             return;
 
-        Vector2Int targetGridPosition = gridPosition + direction;
+        Vector3Int targetGridPosition = gridPosition + direction;
         if (!CanMoveTo(targetGridPosition))
             return;
 
         StartCoroutine(MoveToCell(targetGridPosition));
     }
 
-    private Vector2Int ReadMoveInput()
+    private Vector3Int ReadMoveInput()
     {
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
-            return Vector2Int.zero;
+            return Vector3Int.zero;
 
         if (WasPressedThisFrame(keyboard.upArrowKey, keyboard.wKey, keyboard.zKey))
-            return Vector2Int.up;
+            return new Vector3Int(1, 0, 0);
 
         if (WasPressedThisFrame(keyboard.downArrowKey, keyboard.sKey))
-            return Vector2Int.down;
+            return new Vector3Int(-1, 0, 0);
 
         if (WasPressedThisFrame(keyboard.leftArrowKey, keyboard.aKey, keyboard.qKey))
-            return Vector2Int.left;
+            return new Vector3Int(0, 0, 1);
 
         if (WasPressedThisFrame(keyboard.rightArrowKey, keyboard.dKey))
-            return Vector2Int.right;
+            return new Vector3Int(0, 0, -1);
 
-        return Vector2Int.zero;
+        return Vector3Int.zero;
     }
 
-    private bool CanMoveTo(Vector2Int targetGridPosition)
+    private bool CanMoveTo(Vector3Int targetGridPosition)
     {
         if (board != null)
             return board.IsWalkable(targetGridPosition);
@@ -77,7 +73,7 @@ public class GridMover : MonoBehaviour
         return true;
     }
 
-    private IEnumerator MoveToCell(Vector2Int targetGridPosition)
+    private IEnumerator MoveToCell(Vector3Int targetGridPosition)
     {
         isMoving = true;
 
@@ -99,12 +95,12 @@ public class GridMover : MonoBehaviour
         isMoving = false;
     }
 
-    private Vector3 GridToWorld(Vector2Int cell)
+    private Vector3 GridToWorld(Vector3Int cell)
     {
         if (board != null)
-            return board.GridToWorld(cell, worldHeight);
+            return board.GridToWorld(cell, heightOffset);
 
-        return new Vector3(cell.x * cellSize, worldHeight, cell.y * cellSize);
+        return new Vector3(cell.x, cell.y + heightOffset, cell.z);
     }
 
     private static bool WasPressedThisFrame(params KeyControl[] keys)

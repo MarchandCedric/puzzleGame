@@ -44,6 +44,8 @@ Always use:
 
 - Visible grid or subtle separation
 - Highlight active tile
+- Controls should be screen-relative for clarity in puzzle scenes with a fixed isometric camera
+- Pressing a direction should move the player toward the tile that appears in that direction on screen
 
 ---
 
@@ -52,6 +54,7 @@ Always use:
 - moving camera constantly
 - too much verticality
 - excessive visual effects
+- controls that require players to mentally rotate the board before predicting the next tile
 
 ---
 

@@ -4,127 +4,179 @@ using UnityEngine;
 [ExecuteAlways]
 public class GridBoard : MonoBehaviour
 {
-    [Header("Board Size")]
-    [SerializeField] private int width = 6;
-    [SerializeField] private int height = 6;
     [SerializeField] private float cellSize = 1f;
+    [SerializeField] private float layerHeight = 1f;
     [SerializeField] private Vector3 origin = Vector3.zero;
 
     [Header("Blocked Cells")]
-    [SerializeField] private List<Vector2Int> blockedCells = new()
+    [SerializeField] private List<Vector3Int> blockedCells = new()
     {
-        new Vector2Int(2, 0),
-        new Vector2Int(2, 1),
-        new Vector2Int(2, 2)
+        new Vector3Int(2, 0, 0),
+        new Vector3Int(2, 0, 1),
+        new Vector3Int(2, 0, 2)
     };
-
-    [Header("Tile Visuals")]
-    [SerializeField] private bool generateTilesInEditor = true;
-    [SerializeField] private float tileHeight = 0.1f;
-    [SerializeField] private float tileInset = 0.08f;
-    [SerializeField] private Material tileMaterial = null;
-    [SerializeField] private Color walkableTileColor = new Color(0.79f, 0.82f, 0.72f, 1f);
-    [SerializeField] private Color blockedTileColor = new Color(0.55f, 0.45f, 0.42f, 1f);
+    [SerializeField] private bool requireSceneGroundTiles = true;
+    [SerializeField] private bool includeSceneObstacles = true;
+    [SerializeField] private bool searchWholeSceneForObstacles = true;
+    [SerializeField] private bool searchWholeSceneForGroundTiles = true;
 
     public float CellSize => cellSize;
-
-    private void OnEnable()
-    {
-        if (generateTilesInEditor)
-            RebuildTiles();
-    }
+    public float LayerHeight => layerHeight;
+    public Vector3 Origin => origin;
 
     private void OnValidate()
     {
-        width = Mathf.Max(1, width);
-        height = Mathf.Max(1, height);
         cellSize = Mathf.Max(0.1f, cellSize);
-        tileHeight = Mathf.Max(0.02f, tileHeight);
-        tileInset = Mathf.Clamp(tileInset, 0f, cellSize * 0.45f);
-
-        if (generateTilesInEditor)
-            RebuildTiles();
+        layerHeight = Mathf.Max(0.1f, layerHeight);
     }
 
-    public bool IsWalkable(Vector2Int cell)
+    public bool IsWalkable(Vector3Int cell)
     {
-        return IsInsideBoard(cell) && !blockedCells.Contains(cell);
-    }
-
-    public Vector3 GridToWorld(Vector2Int cell, float worldHeight = 0f)
-    {
-        return origin + new Vector3(cell.x * cellSize, worldHeight, cell.y * cellSize);
-    }
-
-    [ContextMenu("Rebuild Tiles")]
-    public void RebuildTiles()
-    {
-        Transform tilesRoot = GetOrCreateTilesRoot();
-        ClearChildren(tilesRoot);
-
-        for (int y = 0; y < height; y++)
+        if (requireSceneGroundTiles)
         {
-            for (int x = 0; x < width; x++)
+            if (!GetGroundCells().Contains(cell))
+                return false;
+        }
+        else if (!IsInsideDerivedBoard(cell))
+        {
+            return false;
+        }
+
+        return !GetBlockedCells().Contains(cell);
+    }
+
+    public Vector3 GridToWorld(Vector3Int cell, float yOffset = 0f)
+    {
+        return origin + new Vector3(cell.x * cellSize, (cell.y * layerHeight) + yOffset, cell.z * cellSize);
+    }
+
+    public Vector3Int WorldToGrid(Vector3 worldPosition, float yOffset = 0f)
+    {
+        Vector3 localPosition = worldPosition - origin - new Vector3(0f, yOffset, 0f);
+        int gridX = Mathf.RoundToInt(localPosition.x / cellSize);
+        int gridY = Mathf.RoundToInt(localPosition.y / layerHeight);
+        int gridZ = Mathf.RoundToInt(localPosition.z / cellSize);
+        return new Vector3Int(gridX, gridY, gridZ);
+    }
+
+    public HashSet<Vector3Int> GetBlockedCells()
+    {
+        HashSet<Vector3Int> occupiedCells = new HashSet<Vector3Int>(blockedCells);
+
+        if (!includeSceneObstacles)
+            return occupiedCells;
+
+        GridObstacle[] obstacles = FindObstacles();
+        foreach (GridObstacle obstacle in obstacles)
+        {
+            if (obstacle == null)
+                continue;
+
+            occupiedCells.Add(obstacle.GridPosition);
+        }
+
+        return occupiedCells;
+    }
+
+    public HashSet<Vector3Int> GetGroundCells()
+    {
+        HashSet<Vector3Int> groundCells = new HashSet<Vector3Int>();
+        GridGroundTile[] groundTiles = FindGroundTiles();
+
+        foreach (GridGroundTile groundTile in groundTiles)
+        {
+            if (groundTile == null)
+                continue;
+
+            foreach (Vector3Int cell in groundTile.GetCoveredCells())
+                groundCells.Add(cell);
+        }
+
+        return groundCells;
+    }
+
+    public bool TryGetDerivedBounds(out GridBounds bounds)
+    {
+        HashSet<Vector3Int> allCells = new HashSet<Vector3Int>();
+
+        foreach (Vector3Int cell in GetGroundCells())
+            allCells.Add(cell);
+
+        foreach (Vector3Int cell in GetBlockedCells())
+            allCells.Add(cell);
+
+        if (allCells.Count == 0)
+        {
+            bounds = default;
+            return false;
+        }
+
+        bool first = true;
+        int minX = 0;
+        int maxX = 0;
+        int minY = 0;
+        int maxY = 0;
+        int minZ = 0;
+        int maxZ = 0;
+
+        foreach (Vector3Int cell in allCells)
+        {
+            if (first)
             {
-                Vector2Int cell = new Vector2Int(x, y);
-                GameObject tile = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                tile.name = $"Tile_{x}_{y}";
-                tile.transform.SetParent(tilesRoot, false);
-                tile.transform.position = GridToWorld(cell, tileHeight * 0.5f);
-
-                float visualSize = cellSize - (tileInset * 2f);
-                tile.transform.localScale = new Vector3(visualSize, tileHeight, visualSize);
-
-                Collider tileCollider = tile.GetComponent<Collider>();
-                if (tileCollider != null)
-                {
-                    if (Application.isPlaying)
-                        Destroy(tileCollider);
-                    else
-                        DestroyImmediate(tileCollider);
-                }
-
-                Renderer tileRenderer = tile.GetComponent<Renderer>();
-                if (tileRenderer != null)
-                {
-                    Material materialToUse = tileMaterial != null
-                        ? new Material(tileMaterial)
-                        : new Material(Shader.Find("Universal Render Pipeline/Lit"));
-
-                    materialToUse.color = blockedCells.Contains(cell) ? blockedTileColor : walkableTileColor;
-                    tileRenderer.sharedMaterial = materialToUse;
-                }
+                minX = maxX = cell.x;
+                minY = maxY = cell.y;
+                minZ = maxZ = cell.z;
+                first = false;
+                continue;
             }
+
+            minX = Mathf.Min(minX, cell.x);
+            maxX = Mathf.Max(maxX, cell.x);
+            minY = Mathf.Min(minY, cell.y);
+            maxY = Mathf.Max(maxY, cell.y);
+            minZ = Mathf.Min(minZ, cell.z);
+            maxZ = Mathf.Max(maxZ, cell.z);
         }
+
+        bounds = new GridBounds(new Vector3Int(minX, minY, minZ), new Vector3Int(maxX, maxY, maxZ));
+        return true;
     }
 
-    private bool IsInsideBoard(Vector2Int cell)
+    private GridObstacle[] FindObstacles()
     {
-        return cell.x >= 0 && cell.x < width && cell.y >= 0 && cell.y < height;
+        if (searchWholeSceneForObstacles)
+            return FindObjectsByType<GridObstacle>(FindObjectsInactive.Include);
+
+        return GetComponentsInChildren<GridObstacle>(true);
     }
 
-    private Transform GetOrCreateTilesRoot()
+    private GridGroundTile[] FindGroundTiles()
     {
-        const string rootName = "GeneratedTiles";
-        Transform tilesRoot = transform.Find(rootName);
+        if (searchWholeSceneForGroundTiles)
+            return FindObjectsByType<GridGroundTile>(FindObjectsInactive.Include);
 
-        if (tilesRoot != null)
-            return tilesRoot;
-
-        GameObject root = new GameObject(rootName);
-        root.transform.SetParent(transform, false);
-        return root.transform;
+        return GetComponentsInChildren<GridGroundTile>(true);
     }
 
-    private static void ClearChildren(Transform parent)
+    private bool IsInsideDerivedBoard(Vector3Int cell)
     {
-        for (int index = parent.childCount - 1; index >= 0; index--)
-        {
-            GameObject child = parent.GetChild(index).gameObject;
-            if (Application.isPlaying)
-                Destroy(child);
-            else
-                DestroyImmediate(child);
-        }
+        if (!TryGetDerivedBounds(out GridBounds bounds))
+            return false;
+
+        return cell.x >= bounds.Min.x && cell.x <= bounds.Max.x
+            && cell.y >= bounds.Min.y && cell.y <= bounds.Max.y
+            && cell.z >= bounds.Min.z && cell.z <= bounds.Max.z;
     }
+}
+
+public readonly struct GridBounds
+{
+    public GridBounds(Vector3Int min, Vector3Int max)
+    {
+        Min = min;
+        Max = max;
+    }
+
+    public Vector3Int Min { get; }
+    public Vector3Int Max { get; }
 }

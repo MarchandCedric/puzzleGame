@@ -29,11 +29,14 @@ All services should be injected into consumers rather than located globally at r
 - `PlayerController`
 - `LevelLoader`
 - `MoveSystem`
-- `GridBoard` for board bounds, blocked cells, and tile lookup
+- `GridBoard` for board bounds, blocked cells, and tile lookup only
+- `GridGroundTile` for scene-authored playable floor cells
+- `GridObstacle` for scene-authored blocked tiles, including vertical layer coordinates
 - `GridMover` as the Unity-facing movement adapter for the player object
 
 Gameplay rules should live in testable plain C# classes when possible, with `MonoBehaviour` classes acting as Unity-facing adapters.
-For early scene prototypes, keep board-authoring data on a dedicated board object rather than scattering floor pieces across the scene hierarchy.
+Keep board-authoring data on a dedicated board object rather than scattering gameplay logic across floor pieces in the scene hierarchy.
+When scenes are authored with placed floor and obstacle pieces, board bounds should be derived from those cells instead of stored as static width, height, or layer values.
 
 ---
 
@@ -58,4 +61,4 @@ For early scene prototypes, keep board-authoring data on a dedicated board objec
 - Use dependency injection across gameplay, UI, and service layers.
 - Avoid hidden singleton dependencies and static mutable state for core systems.
 - When folder structure or responsibilities change, update this file in the same task.
-- Prefer a dedicated board root with generated or grouped tile children so floor visuals stay aligned with logical grid coordinates.
+- Prefer a dedicated board root for logic and keep floor visuals as separate handcrafted objects or prefabs aligned to the same grid.
