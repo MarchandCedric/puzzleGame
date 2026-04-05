@@ -186,6 +186,7 @@ When creating a new gameplay scene in Unity:
 13. When converting scene objects to grid cells, derive `X` from world `X`, derive grid height from world `Y` minus any visual offset, and derive `Z` from world `Z`.
 14. Keep `GridBoard` focused on `cellSize`, `layerHeight`, and `origin`; let placed ground and obstacle cells define board bounds dynamically.
 15. Add `LevelSceneMetadata` and `LevelSceneFlowController` to each gameplay scene, plus a `LevelExit` on the tile that completes the level, so completion can save stars and return to the menu.
+16. Keep gameplay HUD and touch controls scene-authored or prefab-based; do not rely on `LevelSceneFlowController` to generate runtime HUD widgets.
 
 When creating or maintaining the menu flow:
 

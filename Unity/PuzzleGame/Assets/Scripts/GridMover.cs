@@ -352,9 +352,7 @@ public class LevelSceneFlowController : MonoBehaviour
     [SerializeField] private LevelExit levelExit;
     [SerializeField] private string menuSceneName = "MainMenu";
 
-    private UnityEngine.UI.Text movesLabel;
     private bool hasCompleted;
-    private Font uiFont;
 
     private void Awake()
     {
@@ -366,9 +364,6 @@ public class LevelSceneFlowController : MonoBehaviour
 
         if (levelExit == null)
             levelExit = FindAnyObjectByType<LevelExit>();
-
-        uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        EnsureHud();
     }
 
     private void OnEnable()
@@ -385,9 +380,6 @@ public class LevelSceneFlowController : MonoBehaviour
 
     private void HandleMoveResolved(Vector3Int cell, int moveCount)
     {
-        if (movesLabel != null)
-            movesLabel.text = $"Moves {moveCount}";
-
         if (hasCompleted || levelExit == null || cell != levelExit.GridPosition)
             return;
 
@@ -437,91 +429,12 @@ public class LevelSceneFlowController : MonoBehaviour
     private IEnumerator ReturnToMenuAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        if (!string.IsNullOrWhiteSpace(menuSceneName))
-            UnityEngine.SceneManagement.SceneManager.LoadScene(menuSceneName);
+        ReturnToMenu();
     }
 
-    private void EnsureHud()
-    {
-        Canvas canvas = FindAnyObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            GameObject canvasObject = new GameObject("LevelHudCanvas", typeof(Canvas), typeof(UnityEngine.UI.CanvasScaler), typeof(UnityEngine.UI.GraphicRaycaster));
-            canvas = canvasObject.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            UnityEngine.UI.CanvasScaler scaler = canvasObject.GetComponent<UnityEngine.UI.CanvasScaler>();
-            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-        }
-
-        GameObject root = new GameObject("LevelHudRuntime", typeof(RectTransform));
-        root.transform.SetParent(canvas.transform, false);
-        RectTransform rootRect = root.GetComponent<RectTransform>();
-        rootRect.anchorMin = Vector2.zero;
-        rootRect.anchorMax = Vector2.one;
-        rootRect.offsetMin = Vector2.zero;
-        rootRect.offsetMax = Vector2.zero;
-
-        CreateLabel(rootRect, $"World {metadata?.World ?? 1}-{metadata?.Level ?? 1}", new Vector2(220f, -80f), new Vector2(320f, 50f), 30, TextAnchor.MiddleLeft);
-        movesLabel = CreateLabel(rootRect, "Moves 0", new Vector2(220f, -130f), new Vector2(320f, 50f), 26, TextAnchor.MiddleLeft);
-        CreateButton(rootRect, "Menu", new Vector2(-180f, -80f), new Vector2(180f, 64f), ReturnToMenu);
-    }
-
-    private void ReturnToMenu()
+    public void ReturnToMenu()
     {
         if (!string.IsNullOrWhiteSpace(menuSceneName))
             UnityEngine.SceneManagement.SceneManager.LoadScene(menuSceneName);
-    }
-
-    private UnityEngine.UI.Text CreateLabel(RectTransform parent, string text, Vector2 anchoredPosition, Vector2 size, int fontSize, TextAnchor alignment)
-    {
-        GameObject labelObject = new GameObject("Label", typeof(RectTransform));
-        labelObject.transform.SetParent(parent, false);
-        RectTransform rect = labelObject.GetComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = anchoredPosition;
-        rect.sizeDelta = size;
-
-        UnityEngine.UI.Text label = labelObject.AddComponent<UnityEngine.UI.Text>();
-        label.font = uiFont;
-        label.fontSize = fontSize;
-        label.alignment = alignment;
-        label.color = Color.white;
-        label.text = text;
-        return label;
-    }
-
-    private void CreateButton(RectTransform parent, string label, Vector2 anchoredPosition, Vector2 size, Action onClick)
-    {
-        GameObject buttonObject = new GameObject("Button", typeof(RectTransform));
-        buttonObject.transform.SetParent(parent, false);
-        RectTransform rect = buttonObject.GetComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
-        rect.pivot = new Vector2(1f, 1f);
-        rect.anchoredPosition = anchoredPosition;
-        rect.sizeDelta = size;
-
-        UnityEngine.UI.Image image = buttonObject.AddComponent<UnityEngine.UI.Image>();
-        image.color = new Color(0.18f, 0.22f, 0.30f, 0.9f);
-
-        UnityEngine.UI.Button button = buttonObject.AddComponent<UnityEngine.UI.Button>();
-        button.targetGraphic = image;
-        button.onClick.AddListener(() => onClick());
-
-        GameObject labelObject = new GameObject("Label", typeof(RectTransform));
-        labelObject.transform.SetParent(buttonObject.transform, false);
-        RectTransform labelRect = labelObject.GetComponent<RectTransform>();
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
-
-        UnityEngine.UI.Text text = labelObject.AddComponent<UnityEngine.UI.Text>();
-        text.font = uiFont;
-        text.fontSize = 26;
-        text.alignment = TextAnchor.MiddleCenter;
-        text.color = Color.white;
-        text.text = label;
     }
 }
