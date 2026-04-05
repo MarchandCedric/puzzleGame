@@ -1,0 +1,2 @@
+C:\Users\cedlf\Documents\Projets Ced\PuzzleGame\Unity\PuzzleGame\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+C:\Users\cedlf\Documents\Projets Ced\PuzzleGame\Unity\PuzzleGame\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt

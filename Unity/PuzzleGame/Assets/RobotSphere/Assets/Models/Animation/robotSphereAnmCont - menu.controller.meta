@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 81a78fac5506bdb4f8d23cd8776c75c3
+timeCreated: 1494249471
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 136226
+  packageName: Robot Sphere
+  packageVersion: 1.3
+  assetPath: Assets/RobotSphere/Assets/Models/Animation/robotSphereAnmCont.controller
+  uploadId: 350919
