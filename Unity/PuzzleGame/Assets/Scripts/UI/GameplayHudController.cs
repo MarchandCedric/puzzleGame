@@ -5,6 +5,13 @@ using UnityEngine.UI;
 
 public class GameplayHudController : MonoBehaviour
 {
+    [System.Serializable]
+    private struct ItemSpriteEntry
+    {
+        public DoorKeyType keyType;
+        public Sprite sprite;
+    }
+
     [Header("Scene Sources")]
     [SerializeField] private GridMover mover;
     [SerializeField] private PlayerKeyRing keyRing;
@@ -14,12 +21,14 @@ public class GameplayHudController : MonoBehaviour
     [SerializeField] private TMP_Text levelNameText;
     [SerializeField] private TMP_Text movesText;
 
-    [Header("Keys")]
+    [Header("Items")]
     [SerializeField] private Transform keysContainer;
-    [SerializeField] private GameObject keyItemPrefab;
     [SerializeField] private TMP_Text noKeysText;
+    [SerializeField] private bool hideUnusedItemSlots = true;
+    [SerializeField] private bool tintItemImage = false;
+    [SerializeField] private ItemSpriteEntry[] itemSprites;
 
-    private readonly List<GameObject> spawnedKeyItems = new List<GameObject>();
+    private readonly List<GameObject> itemSlots = new List<GameObject>();
 
     private void Awake()
     {
@@ -31,6 +40,8 @@ public class GameplayHudController : MonoBehaviour
 
         if (metadata == null)
             metadata = FindAnyObjectByType<LevelSceneMetadata>();
+
+        CacheItemSlots();
     }
 
     private void OnEnable()
@@ -100,8 +111,6 @@ public class GameplayHudController : MonoBehaviour
         if (keysContainer == null)
             return;
 
-        ClearSpawnedKeyItems();
-
         List<DoorKeyType> heldKeys = new List<DoorKeyType>();
         if (keyRing != null)
         {
@@ -114,30 +123,50 @@ public class GameplayHudController : MonoBehaviour
         if (noKeysText != null)
             noKeysText.gameObject.SetActive(heldKeys.Count == 0);
 
-        if (keyItemPrefab == null)
+        for (int i = 0; i < itemSlots.Count; i++)
+        {
+            bool hasItem = i < heldKeys.Count;
+            ConfigureItemSlot(itemSlots[i], hasItem, hasItem ? heldKeys[i] : DoorKeyType.Red);
+        }
+
+        if (heldKeys.Count > itemSlots.Count)
+            Debug.LogWarning($"[GameplayHudController] {heldKeys.Count} items held, but only {itemSlots.Count} HUD item slots are available.", this);
+    }
+
+    private void ConfigureItemSlot(GameObject slot, bool hasItem, DoorKeyType keyType)
+    {
+        if (slot == null)
             return;
 
-        foreach (DoorKeyType keyType in heldKeys)
+        slot.SetActive(hasItem || !hideUnusedItemSlots);
+
+        TMP_Text label = slot.GetComponentInChildren<TMP_Text>(true);
+        if (label != null)
+            label.text = hasItem ? keyType.ToString().Substring(0, 1).ToUpperInvariant() : string.Empty;
+
+        Image image = slot.GetComponent<Image>();
+        if (image == null)
+            image = slot.GetComponentInChildren<Image>(true);
+
+        if (image != null)
         {
-            GameObject keyItem = Instantiate(keyItemPrefab, keysContainer);
-            keyItem.name = $"{keyType}KeyHudItem";
-            ConfigureKeyItem(keyItem, keyType);
-            spawnedKeyItems.Add(keyItem);
+            image.sprite = hasItem ? GetItemSprite(keyType) : null;
+            image.color = hasItem
+                ? (tintItemImage ? GetKeyColor(keyType) : Color.white)
+                : new Color(1f, 1f, 1f, 0f);
+            image.preserveAspect = true;
         }
     }
 
-    private void ConfigureKeyItem(GameObject keyItem, DoorKeyType keyType)
+    private Sprite GetItemSprite(DoorKeyType keyType)
     {
-        TMP_Text label = keyItem.GetComponentInChildren<TMP_Text>(true);
-        if (label != null)
-            label.text = keyType.ToString().Substring(0, 1).ToUpperInvariant();
+        foreach (ItemSpriteEntry entry in itemSprites)
+        {
+            if (entry.keyType == keyType)
+                return entry.sprite;
+        }
 
-        Image image = keyItem.GetComponent<Image>();
-        if (image == null)
-            image = keyItem.GetComponentInChildren<Image>(true);
-
-        if (image != null)
-            image.color = GetKeyColor(keyType);
+        return null;
     }
 
     private static Color GetKeyColor(DoorKeyType keyType)
@@ -157,14 +186,14 @@ public class GameplayHudController : MonoBehaviour
         }
     }
 
-    private void ClearSpawnedKeyItems()
+    private void CacheItemSlots()
     {
-        foreach (GameObject item in spawnedKeyItems)
-        {
-            if (item != null)
-                Destroy(item);
-        }
+        itemSlots.Clear();
 
-        spawnedKeyItems.Clear();
+        if (keysContainer == null)
+            return;
+
+        for (int i = 0; i < keysContainer.childCount; i++)
+            itemSlots.Add(keysContainer.GetChild(i).gameObject);
     }
 }
