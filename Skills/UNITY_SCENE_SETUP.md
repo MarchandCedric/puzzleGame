@@ -190,6 +190,7 @@ When creating a new gameplay scene in Unity:
 14. Keep `GridBoard` focused on `cellSize`, `layerHeight`, and `origin`; let placed ground and obstacle cells define board bounds dynamically.
 15. Add `LevelSceneMetadata` and `LevelSceneFlowController` to each gameplay scene, plus a `LevelExit` on the tile that completes the level, so completion can save stars and return to the menu.
 16. Keep gameplay HUD and touch controls scene-authored or prefab-based; do not rely on `LevelSceneFlowController` to generate runtime HUD widgets.
+17. Prefer one reusable gameplay HUD prefab with a `GameplayHudController` bound to `GridMover`, `PlayerKeyRing`, and `LevelSceneMetadata` so moves, held keys, and level label stay in sync across all levels.
 
 When creating or maintaining the menu flow:
 

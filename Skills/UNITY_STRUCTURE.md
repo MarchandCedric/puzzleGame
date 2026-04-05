@@ -56,7 +56,7 @@ When scenes are authored with placed floor and obstacle pieces, board bounds sho
 - `LevelSelect`
 - `HUD`
 - `EndLevelScreen`
-- `MainMenuUIController` for runtime composition of the prototype main menu and level select flow in `MainMenu.unity`
+- `GameplayHudController` for binding scene-authored HUD prefabs to `GridMover`, `PlayerKeyRing`, and `LevelSceneMetadata`
 
 ---
 

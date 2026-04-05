@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,9 @@ public class PlayerKeyRing : MonoBehaviour
     [SerializeField] private List<DoorKeyType> debugHeldKeys = new List<DoorKeyType>();
 
     private readonly HashSet<DoorKeyType> keys = new HashSet<DoorKeyType>();
+    public event Action KeysChanged;
+
+    public IEnumerable<DoorKeyType> HeldKeys => keys;
 
     private void Awake()
     {
@@ -24,18 +28,23 @@ public class PlayerKeyRing : MonoBehaviour
 
     public void AddKey(DoorKeyType keyType)
     {
-        keys.Add(keyType);
+        if (!keys.Add(keyType))
+            return;
+
         SyncDebugState();
+        KeysChanged?.Invoke();
     }
 
     public bool TryConsumeKey(DoorKeyType keyType)
     {
         bool removed = keys.Remove(keyType);
 
-        if (removed)
-            SyncDebugState();
+        if (!removed)
+            return false;
 
-        return removed;
+        SyncDebugState();
+        KeysChanged?.Invoke();
+        return true;
     }
 
     private void SyncDebugState()
