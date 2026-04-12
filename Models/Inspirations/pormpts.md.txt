@@ -1,0 +1,47 @@
+Top down :
+
+Top-down orthographic view of a perfectly square futuristic floor tile, minimalist sci-fi design, fully symmetrical horizontally and vertically.
+
+The tile is light grey with subtle variations of grey only (no strong contrast, no color accents).
+
+The outer border has straight chamfered edges (not rounded), with a uniform chamfer width equal to 1/10 of the tile width.
+
+Inside the tile, a centered octagonal panel is defined by thin engraved lines (not extruded, no shading).
+
+Each of the four corners contains a small geometric panel (octagonal or square-like), perfectly identical and symmetrically placed.
+
+All edges must be perfectly straight and aligned (no perspective distortion).
+
+No lighting effects, no shadows, no glow, no reflections, no gradients — flat neutral rendering.
+
+Highly detailed but clean surface, suitable for use as a game texture.
+
+Background must be uniform and neutral or transparent.
+
+Ultra high resolution, sharp, crisp lines, perfectly centered composition.
+
+no ambient occlusion, no bevel shading, no soft shadows, no gradients
+
+Profile
+
+Side orthographic view of a futuristic square floor tile, minimalist sci-fi design.
+
+The tile is a low-profile rectangular block with clean straight edges and no rounded corners.
+
+The top edge includes a slight outward chamfer matching 1/10 of the tile width proportion.
+
+The side surface is flat, with minimal panel line details (thin engraved lines only, no depth illusion).
+
+The design must be perfectly symmetrical horizontally.
+
+No lighting effects, no shadows, no reflections, no glow — flat neutral rendering.
+
+Colors are limited to light grey and slightly darker grey tones only.
+
+No perspective distortion, strictly orthographic side view.
+
+Clean technical look, suitable for 3D modeling reference.
+
+Ultra high resolution, sharp edges, perfectly centered on a neutral or transparent background.
+
+no ambient occlusion, no bevel shading, no soft shadows, no gradients

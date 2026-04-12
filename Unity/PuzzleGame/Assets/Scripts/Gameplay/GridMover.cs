@@ -97,6 +97,8 @@ public class GridMover : MonoBehaviour
 
     private bool CanMoveTo(Vector3Int targetGridPosition)
     {
+        EnsureDependenciesResolved();
+
         if (board != null)
             return board.IsWalkable(targetGridPosition, keyRing);
 
@@ -105,6 +107,8 @@ public class GridMover : MonoBehaviour
 
     private bool TryResolveTargetCell(Vector3Int targetGridPosition)
     {
+        EnsureDependenciesResolved();
+
         if (board == null)
             return true;
 
@@ -117,10 +121,10 @@ public class GridMover : MonoBehaviour
             return;
 
         Vector3Int targetGridPosition = gridPosition + direction;
-        if (!CanMoveTo(targetGridPosition))
+        if (!TryResolveTargetCell(targetGridPosition))
             return;
 
-        if (!TryResolveTargetCell(targetGridPosition))
+        if (!CanMoveTo(targetGridPosition))
             return;
 
         StartCoroutine(MoveToCell(targetGridPosition));
@@ -179,6 +183,26 @@ public class GridMover : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void EnsureDependenciesResolved()
+    {
+        if (board == null)
+            board = FindAnyObjectByType<GridBoard>();
+
+        if (keyRing == null)
+        {
+            keyRing = GetComponent<PlayerKeyRing>();
+
+            if (keyRing == null)
+                keyRing = GetComponentInParent<PlayerKeyRing>();
+
+            if (keyRing == null)
+                keyRing = GetComponentInChildren<PlayerKeyRing>(true);
+        }
+
+        if (animationController == null)
+            animationController = FindAnimationController();
     }
 
     private static MoveAnimationDirection ToAnimationDirection(Vector3Int movement)

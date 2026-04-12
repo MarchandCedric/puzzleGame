@@ -10,4 +10,9 @@ public class SceneButtonLoader : MonoBehaviour
         if (!string.IsNullOrWhiteSpace(sceneName))
             SceneManager.LoadScene(sceneName);
     }
+
+    public void SetSceneName(string name)
+    {
+        sceneName = name;
+    }
 }

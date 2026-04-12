@@ -342,7 +342,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 29.3
+  m_fontSize: 36.9
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -622,7 +622,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -638,7 +638,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -740,7 +740,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -756,7 +756,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -869,7 +869,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -885,7 +885,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1390,7 +1390,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -1406,7 +1406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 9.9
+      value: 12.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1867,7 +1867,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -1883,7 +1883,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2778,7 +2778,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36.65
+  m_fontSize: 46.1
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -3275,7 +3275,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
+  m_fontSize: 19.35
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -3908,7 +3908,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -3924,7 +3924,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4539,7 +4539,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -4555,7 +4555,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5647,7 +5647,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36.65
+  m_fontSize: 46.1
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6068,7 +6068,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 12.3
+  m_fontSize: 12.8
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6457,7 +6457,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 89.3
+  m_fontSize: 100
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6599,7 +6599,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
+  m_fontSize: 19.35
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6936,7 +6936,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 29.3
+  m_fontSize: 36.9
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -7216,7 +7216,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
@@ -7232,7 +7232,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7674,7 +7674,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 89.3
+  m_fontSize: 100
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -7817,19 +7817,79 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3405314776024178087, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 15.4
       objectReference: {fileID: 0}
     - target: {fileID: 6460537602243034216, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_Name
       value: level1-1
       objectReference: {fileID: 0}
     - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1226025166}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 583263548}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SelectButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: SetSceneName
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: SceneButtonLoader, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_BoolArgument
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgument
+      value: 
+      objectReference: {fileID: 2093354904}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgument
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_StringArgument
+      value: Level1-1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: LevelButtonActivate, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7066747454183836735, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 8488628393423330471, guid: 526c81dec52f273488d0a4ef1749ac22, type: 3}
       propertyPath: m_fontSize
-      value: 10.05
+      value: 12.7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
