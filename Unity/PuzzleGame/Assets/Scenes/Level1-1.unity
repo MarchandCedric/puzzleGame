@@ -3145,6 +3145,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400110, guid: bff429107601444d59c67940e6ad78c4, type: 3}
   m_PrefabInstance: {fileID: 1450591857}
   m_PrefabAsset: {fileID: 0}
+--- !u!95 &593130595 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 9500000, guid: bff429107601444d59c67940e6ad78c4, type: 3}
+  m_PrefabInstance: {fileID: 1450591857}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &620361999
 GameObject:
   m_ObjectHideFlags: 0
@@ -9073,6 +9078,7 @@ GameObject:
   - component: {fileID: 1883876419}
   - component: {fileID: 1883876418}
   - component: {fileID: 1883876423}
+  - component: {fileID: 1883876424}
   m_Layer: 0
   m_Name: PlayerRoot
   m_TagString: Untagged
@@ -9184,14 +9190,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1883876417}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.92387956, z: 0, w: 0.38268343}
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 904535740}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 135, z: 0}
 --- !u!114 &1883876423
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9206,6 +9212,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerKeyRing
   startingKeys: 
   debugHeldKeys: 
+--- !u!114 &1883876424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1883876417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66435ea225431f64cb7ae75390c60dd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorPlayerAnimationController
+  animator: {fileID: 593130595}
+  visualRoot: {fileID: 0}
+  movingBoolParameter: Walk_Anim
+  upYaw: -45
+  downYaw: 135
+  leftYaw: 225
+  rightYaw: 45
+  walkUpParameter: walk_up
+  walkDownParameter: walk_down
+  walkLeftParameter: walk_left
+  walkRightParameter: walk_right
 --- !u!1001 &1902784048
 PrefabInstance:
   m_ObjectHideFlags: 0
