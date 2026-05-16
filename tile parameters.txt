@@ -1,0 +1,5 @@
+background : size for corner : 0.200, number : 10
+around the top : 0.050, number : 3
+bloc : 0.1 pour 10
+
+C2CEFF

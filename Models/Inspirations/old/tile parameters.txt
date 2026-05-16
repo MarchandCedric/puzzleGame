@@ -1,0 +1,2 @@
+background : size for corner : 0.200, number : 10
+around the top : 0.050, number : 3
