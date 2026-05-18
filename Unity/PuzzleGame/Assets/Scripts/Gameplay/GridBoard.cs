@@ -21,6 +21,7 @@ public class GridBoard : MonoBehaviour
     [SerializeField] private bool searchWholeSceneForGroundTiles = true;
     [SerializeField] private bool searchWholeSceneForKeys = true;
     [SerializeField] private bool searchWholeSceneForDoors = true;
+    [SerializeField] private bool searchWholeSceneForLevelExits = true;
 
     public float CellSize => cellSize;
     public float LayerHeight => layerHeight;
@@ -43,6 +44,10 @@ public class GridBoard : MonoBehaviour
         {
             return false;
         }
+
+        LevelExit levelExit = FindLevelExitAt(cell);
+        if (levelExit != null)
+            return levelExit.IsReady;
 
         GridDoor door = FindDoorAt(cell);
         if (door != null)
@@ -218,6 +223,14 @@ public class GridBoard : MonoBehaviour
         return GetComponentsInChildren<GridDoor>(true);
     }
 
+    private LevelExit[] FindLevelExits()
+    {
+        if (searchWholeSceneForLevelExits)
+            return FindObjectsByType<LevelExit>(FindObjectsInactive.Include);
+
+        return GetComponentsInChildren<LevelExit>(true);
+    }
+
     private GridKey FindKeyAt(Vector3Int cell)
     {
         GridKey[] keys = FindKeys();
@@ -251,6 +264,18 @@ public class GridBoard : MonoBehaviour
         {
             if (door != null && door.GridPosition == cell)
                 return door;
+        }
+
+        return null;
+    }
+
+    private LevelExit FindLevelExitAt(Vector3Int cell)
+    {
+        LevelExit[] levelExits = FindLevelExits();
+        foreach (LevelExit levelExit in levelExits)
+        {
+            if (levelExit != null && levelExit.GridPosition == cell)
+                return levelExit;
         }
 
         return null;

@@ -16,10 +16,12 @@ public class GameplayHudController : MonoBehaviour
     [SerializeField] private GridMover mover;
     [SerializeField] private PlayerKeyRing keyRing;
     [SerializeField] private LevelSceneMetadata metadata;
+    [SerializeField] private LevelSceneFlowController levelFlow;
 
     [Header("Text")]
     [SerializeField] private TMP_Text levelNameText;
     [SerializeField] private TMP_Text movesText;
+    [SerializeField] private TMP_Text collectiblesText;
 
     [Header("Items")]
     [SerializeField] private Transform keysContainer;
@@ -41,6 +43,9 @@ public class GameplayHudController : MonoBehaviour
         if (metadata == null)
             metadata = FindAnyObjectByType<LevelSceneMetadata>();
 
+        if (levelFlow == null)
+            levelFlow = FindAnyObjectByType<LevelSceneFlowController>();
+
         CacheItemSlots();
     }
 
@@ -51,6 +56,9 @@ public class GameplayHudController : MonoBehaviour
 
         if (keyRing != null)
             keyRing.KeysChanged += HandleKeysChanged;
+
+        if (levelFlow != null)
+            levelFlow.CollectiblesChanged += HandleCollectiblesChanged;
     }
 
     private void Start()
@@ -65,6 +73,9 @@ public class GameplayHudController : MonoBehaviour
 
         if (keyRing != null)
             keyRing.KeysChanged -= HandleKeysChanged;
+
+        if (levelFlow != null)
+            levelFlow.CollectiblesChanged -= HandleCollectiblesChanged;
     }
 
     private void HandleMoveResolved(Vector3Int _, int moveCount)
@@ -77,10 +88,18 @@ public class GameplayHudController : MonoBehaviour
         RefreshKeys();
     }
 
+    private void HandleCollectiblesChanged(int collected, int required)
+    {
+        RefreshCollectibles(collected, required);
+    }
+
     public void RefreshAll()
     {
         RefreshLevelName();
         RefreshMoves(mover != null ? mover.MoveCount : 0);
+        RefreshCollectibles(
+            levelFlow != null ? levelFlow.CollectedCollectibles : 0,
+            levelFlow != null ? levelFlow.RequiredCollectibles : 0);
         RefreshKeys();
     }
 
@@ -104,6 +123,16 @@ public class GameplayHudController : MonoBehaviour
             return;
 
         movesText.text = $"Moves {moveCount}";
+    }
+
+    private void RefreshCollectibles(int collected, int required)
+    {
+        if (collectiblesText == null)
+            return;
+
+        collectiblesText.text = required > 0
+            ? $"{collected}/{required}"
+            : string.Empty;
     }
 
     private void RefreshKeys()

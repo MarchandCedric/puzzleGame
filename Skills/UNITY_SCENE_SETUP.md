@@ -188,9 +188,14 @@ When creating a new gameplay scene in Unity:
 12. Put blocking level props under the board root and keep their grid coordinates synced from transform position or explicit inspector values so visible obstacles and movement rules stay in sync across height layers.
 13. When converting scene objects to grid cells, derive `X` from world `X`, derive grid height from world `Y` minus any visual offset, and derive `Z` from world `Z`.
 14. Keep `GridBoard` focused on `cellSize`, `layerHeight`, and `origin`; let placed ground and obstacle cells define board bounds dynamically.
-15. Add `LevelSceneMetadata` and `LevelSceneFlowController` to each gameplay scene, plus a `LevelExit` on the tile that completes the level, so completion can save stars and return to the menu.
+15. Add `LevelSceneMetadata` and `LevelSceneFlowController` to each gameplay scene, plus a `LevelExit` on the portal tile, so completion can save stars and show the completion UI.
 16. Keep gameplay HUD and touch controls scene-authored or prefab-based; do not rely on `LevelSceneFlowController` to generate runtime HUD widgets.
 17. Prefer one reusable gameplay HUD prefab with a `GameplayHudController` bound to `GridMover`, `PlayerKeyRing`, and `LevelSceneMetadata` so moves, held keys, and level label stay in sync across all levels.
+18. Add `GridCollectible` to each required pickup object and keep its grid coordinates synced from transform position or explicit inspector values.
+19. Use `LevelSceneMetadata.requiredCollectibles` when a level needs an explicit objective count; leave it at `-1` to derive the requirement from placed `GridCollectible` objects.
+20. Bind the portal's `PortalPulse` visual to `LevelSceneFlowController` when possible so the portal can visibly switch from inactive to active.
+21. Add a scene-authored completion panel with `LevelCompletionUiController`; bind its score/star labels and optional retry, menu, and next-level buttons.
+22. Set `LevelSceneFlowController.nextLevelSceneName` when the completion UI should enable a next-level button.
 
 When creating or maintaining the menu flow:
 

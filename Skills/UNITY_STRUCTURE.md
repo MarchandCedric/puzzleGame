@@ -29,12 +29,15 @@ All services should be injected into consumers rather than located globally at r
 - `PlayerController`
 - `LevelLoader`
 - `MoveSystem`
-- `GridBoard` for board bounds, blocked cells, and tile lookup only
+- `GridBoard` for board bounds, blocked cells, inactive portal blocking, and tile lookup only
 - `GridGroundTile` for scene-authored playable floor cells
 - `GridObstacle` for scene-authored blocked tiles, including vertical layer coordinates
 - `GridKey`, `GridDoor`, and `PlayerKeyRing` for simple keyed-door puzzle interactions
+- `GridCollectible` for scene-authored objective pickups that gate portal activation
 - `GridMover` as the Unity-facing movement adapter for the player object
-- `LevelSceneMetadata`, `LevelExit`, and `LevelSceneFlowController` for level identity, completion, and return-to-menu flow
+- `LevelSceneMetadata`, `LevelExit`, and `LevelSceneFlowController` for level identity, completion, result saving, and next/menu navigation hooks
+- `LevelCompletionResult` as the plain C# result payload for completed levels
+- `LevelObjectiveState` as the plain C# collectible progress and portal activation state
 - `IPlayerAnimationController` and adapters for mapping movement intent to model-specific animator parameters and visual-facing rotation
 
 Gameplay rules should live in testable plain C# classes when possible, with `MonoBehaviour` classes acting as Unity-facing adapters.
@@ -56,7 +59,8 @@ When scenes are authored with placed floor and obstacle pieces, board bounds sho
 - `LevelSelect`
 - `HUD`
 - `EndLevelScreen`
-- `GameplayHudController` for binding scene-authored HUD prefabs to `GridMover`, `PlayerKeyRing`, and `LevelSceneMetadata`
+- `GameplayHudController` for binding scene-authored HUD prefabs to `GridMover`, `PlayerKeyRing`, `LevelSceneFlowController`, and `LevelSceneMetadata`
+- `LevelCompletionUiController` for binding scene-authored completion UI to moves, stars, retry, menu, and next-level actions
 
 ---
 

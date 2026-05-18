@@ -22,7 +22,9 @@
 
 ## Objective
 
-- Reach the exit
+- Collect all required collectibles
+- Activate the portal
+- Reach the active portal
 - Optimize move count
 
 ---
@@ -47,10 +49,13 @@ Example:
 
 1. Start level
 2. Solve puzzle
-3. Finish level
-4. Calculate score
-5. Assign stars
-6. Unlock next level
+3. Collect all required collectibles
+4. Activate the portal
+5. Reach the active portal
+6. Calculate score from move count
+7. Assign stars
+8. Show the level completion UI
+9. Let the player continue to the next level, retry, or return to menu
 
 ## Level Select Rules
 
@@ -91,6 +96,12 @@ Example:
 - Keys can unlock matching doors
 - A consumed key opens one matching door once
 - Doors block passage until the player has the required key
+- Collectibles are level objectives, not inventory items
+- Each level may define a required collectible count; if not explicitly set, the scene's placed `GridCollectible` objects define the required count
+- The level portal remains inactive until all required collectibles are collected
+- An inactive portal blocks movement like an obstacle
+- Moving onto the active portal completes the level immediately after that move resolves and evaluates stars from the move count
+- Completing a level should keep the player in the gameplay scene and display score/star UI instead of immediately returning to the menu
 
 ---
 
