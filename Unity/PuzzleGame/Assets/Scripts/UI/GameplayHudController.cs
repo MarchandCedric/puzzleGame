@@ -147,7 +147,7 @@ public class GameplayHudController : MonoBehaviour
                 heldKeys.Add(key);
         }
 
-        heldKeys.Sort();
+        //heldKeys.Sort();
 
         if (noKeysText != null)
             noKeysText.gameObject.SetActive(heldKeys.Count == 0);
