@@ -94,6 +94,7 @@ Example:
 ## Puzzle Elements
 
 - Keys can unlock matching doors
+- The player can hold multiple keys of the same color
 - A consumed key opens one matching door once
 - Doors block passage until the player has the required key
 - Collectibles are level objectives, not inventory items

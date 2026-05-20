@@ -8,7 +8,7 @@ public class PlayerKeyRing : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private List<DoorKeyType> debugHeldKeys = new List<DoorKeyType>();
 
-    private readonly HashSet<DoorKeyType> keys = new HashSet<DoorKeyType>();
+    private readonly List<DoorKeyType> keys = new List<DoorKeyType>();
     public event Action KeysChanged;
 
     public IEnumerable<DoorKeyType> HeldKeys => keys;
@@ -28,9 +28,7 @@ public class PlayerKeyRing : MonoBehaviour
 
     public void AddKey(DoorKeyType keyType)
     {
-        if (!keys.Add(keyType))
-            return;
-
+        keys.Add(keyType);
         SyncDebugState();
         KeysChanged?.Invoke();
     }

@@ -122,7 +122,7 @@ public class GameplayHudController : MonoBehaviour
         if (movesText == null)
             return;
 
-        movesText.text = $"Moves {moveCount}";
+        movesText.text = $"{moveCount}";
     }
 
     private void RefreshCollectibles(int collected, int required)
