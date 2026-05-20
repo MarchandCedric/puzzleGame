@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -10,11 +11,18 @@ public class LevelSceneFlowController : MonoBehaviour
     [SerializeField] private PortalPulse portalVisual;
     [SerializeField] private GameObject completionUiRoot = null;
     [SerializeField] private bool disableMoverOnComplete = true;
+    [Header("Completion Presentation")]
+    [SerializeField] private float completionRevealDelay = 0.75f;
+    [SerializeField] private PortalCompletionEffect completionEffect = null;
+    [SerializeField] private Animator completionAnimation = null;
+    [SerializeField] private string completionAnimationTrigger = "Play";
+    [SerializeField] private bool fitCompletionAnimationToDelay = true;
     [SerializeField] private bool searchWholeSceneForCollectibles = true;
     [SerializeField] private string menuSceneName = "MainMenu";
     [SerializeField] private string nextLevelSceneName = string.Empty;
 
     private bool hasCompleted;
+    private Coroutine completionSequence;
     private GridCollectible[] collectibles = Array.Empty<GridCollectible>();
     private LevelObjectiveState objectiveState;
     private LevelCompletionResult lastCompletionResult;
@@ -42,6 +50,9 @@ public class LevelSceneFlowController : MonoBehaviour
 
         if (portalVisual == null)
             portalVisual = FindAnyObjectByType<PortalPulse>();
+
+        if (completionEffect == null)
+            completionEffect = FindAnyObjectByType<PortalCompletionEffect>();
 
         collectibles = FindCollectibles();
         int requiredCollectibles = ResolveRequiredCollectibles();
@@ -87,7 +98,7 @@ public class LevelSceneFlowController : MonoBehaviour
         if (levelExit == null || cell != levelExit.GridPosition || !IsPortalActive)
             return;
 
-        CompleteLevel(moveCount);
+        BeginCompleteLevel(moveCount);
     }
 
     private void ResolveCollectibleAt(Vector3Int cell)
@@ -161,7 +172,7 @@ public class LevelSceneFlowController : MonoBehaviour
         CollectiblesChanged?.Invoke(CollectedCollectibles, RequiredCollectibles);
     }
 
-    private void CompleteLevel(int moveCount)
+    private void BeginCompleteLevel(int moveCount)
     {
         if (hasCompleted || metadata == null)
             return;
@@ -174,10 +185,62 @@ public class LevelSceneFlowController : MonoBehaviour
         if (disableMoverOnComplete && mover != null)
             mover.enabled = false;
 
+        PlayCompletionAnimation();
+        PlayCompletionEffect();
+
+        if (completionSequence != null)
+            StopCoroutine(completionSequence);
+
+        completionSequence = StartCoroutine(ShowCompletionAfterDelay());
+    }
+
+    private IEnumerator ShowCompletionAfterDelay()
+    {
+        if (completionRevealDelay > 0f)
+            yield return new WaitForSeconds(completionRevealDelay);
+
+        if (completionAnimation != null && fitCompletionAnimationToDelay)
+            completionAnimation.speed = 1f;
+
         if (completionUiRoot != null)
             completionUiRoot.SetActive(true);
 
         LevelCompleted?.Invoke(lastCompletionResult);
+        completionSequence = null;
+    }
+
+    private void PlayCompletionAnimation()
+    {
+        if (completionAnimation == null)
+            return;
+
+        if (fitCompletionAnimationToDelay && completionRevealDelay > 0f)
+        {
+            float clipLength = GetFirstAnimationClipLength(completionAnimation);
+            if (clipLength > 0f)
+                completionAnimation.speed = clipLength / completionRevealDelay;
+        }
+
+        if (!string.IsNullOrWhiteSpace(completionAnimationTrigger))
+            completionAnimation.SetTrigger(completionAnimationTrigger);
+    }
+
+    private void PlayCompletionEffect()
+    {
+        if (completionEffect == null || mover == null)
+            return;
+
+        completionEffect.Play(mover.transform, completionRevealDelay);
+    }
+
+    private static float GetFirstAnimationClipLength(Animator animator)
+    {
+        RuntimeAnimatorController controller = animator.runtimeAnimatorController;
+        if (controller == null || controller.animationClips == null || controller.animationClips.Length == 0)
+            return 0f;
+
+        AnimationClip clip = controller.animationClips[0];
+        return clip != null ? clip.length : 0f;
     }
 
     private int EvaluateStars(int moveCount)

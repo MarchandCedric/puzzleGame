@@ -194,8 +194,9 @@ When creating a new gameplay scene in Unity:
 18. Add `GridCollectible` to each required pickup object and keep its grid coordinates synced from transform position or explicit inspector values.
 19. Use `LevelSceneMetadata.requiredCollectibles` when a level needs an explicit objective count; leave it at `-1` to derive the requirement from placed `GridCollectible` objects.
 20. Bind the portal's `PortalPulse` visual to `LevelSceneFlowController` when possible so the portal can visibly switch from inactive to active.
-21. Add a scene-authored completion panel with `LevelCompletionUiController`; bind its score/star labels and optional retry, menu, and next-level buttons.
-22. Set `LevelSceneFlowController.nextLevelSceneName` when the completion UI should enable a next-level button.
+21. Add a scene-authored completion panel, such as `HudCanva/Victory`, with `LevelCompletionUiController`; bind its title, score/star labels, and optional retry, menu, and next-level buttons. Keep it hidden at scene start.
+22. Configure `LevelSceneFlowController.completionUiRoot` with the Victory object, set `completionRevealDelay`, and optionally bind a `PortalCompletionEffect` for the player shrink and flash effect or an Animator plus trigger for the transition that plays before the Victory UI appears.
+23. Set `LevelSceneFlowController.nextLevelSceneName` when the completion UI should enable a next-level button.
 
 When creating or maintaining the menu flow:
 

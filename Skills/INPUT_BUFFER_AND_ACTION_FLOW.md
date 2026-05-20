@@ -39,7 +39,7 @@
 6. Resolve interactions such as key pickup, collectible pickup, portal activation, or door unlock
 7. Return to `Idle`
 
-Inactive portals are not walkable. When a move resolves on the active portal, the game enters `LevelComplete` immediately after collectible and movement resolution has finished.
+Inactive portals are not walkable. When a move resolves on the active portal, the game enters `LevelComplete` after collectible and movement resolution has finished. Gameplay input is locked immediately, then the configured victory delay and animation can run before the completion UI is shown.
 
 ---
 

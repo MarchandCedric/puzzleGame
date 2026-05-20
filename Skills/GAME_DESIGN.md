@@ -101,7 +101,7 @@ Example:
 - Each level may define a required collectible count; if not explicitly set, the scene's placed `GridCollectible` objects define the required count
 - The level portal remains inactive until all required collectibles are collected
 - An inactive portal blocks movement like an obstacle
-- Moving onto the active portal completes the level immediately after that move resolves and evaluates stars from the move count
+- Moving onto the active portal locks gameplay, evaluates stars from the move count, may play a short victory transition, and then shows the level completion UI
 - Completing a level should keep the player in the gameplay scene and display score/star UI instead of immediately returning to the menu
 
 ---

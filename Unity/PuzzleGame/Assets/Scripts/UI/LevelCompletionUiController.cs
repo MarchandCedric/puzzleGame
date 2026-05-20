@@ -7,6 +7,8 @@ public class LevelCompletionUiController : MonoBehaviour
 {
     [SerializeField] private LevelSceneFlowController levelFlow = null;
     [SerializeField] private GameObject root = null;
+    [SerializeField] private TMP_Text titleText = null;
+    [SerializeField] private string title = "Congratulations!";
     [SerializeField] private TMP_Text levelText = null;
     [SerializeField] private TMP_Text movesText = null;
     [SerializeField] private TMP_Text starsText = null;
@@ -59,6 +61,9 @@ public class LevelCompletionUiController : MonoBehaviour
     private void HandleLevelCompleted(LevelCompletionResult result)
     {
         root.SetActive(true);
+
+        if (titleText != null)
+            titleText.text = title;
 
         if (levelText != null)
             levelText.text = $"Level {result.World}-{result.Level}";
