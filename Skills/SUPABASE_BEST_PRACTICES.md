@@ -36,6 +36,13 @@ These practices apply to Supabase, PostgreSQL, authentication, and backend data 
 - Treat level definitions and publication state as controlled content.
 - Treat player best scores, tokens, purchases, and customization as user-scoped data.
 - Keep monetization entitlements auditable and separate from temporary balances where possible.
+- For the score-saving MVP, store only `best_move_count` in Supabase and derive
+  stars in Unity from the level's current local thresholds.
+- Use stable Unity-authored level GUIDs for score persistence. Do not use readable
+  labels such as `1-1` as the database identity.
+- During local/cloud score sync, prefer the lower move count as the winning score.
+  Use `updated_at` for bookkeeping, diagnostics, and deciding what changed, not as
+  the only conflict rule.
 
 ## Migrations And Change Management
 

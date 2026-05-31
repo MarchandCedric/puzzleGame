@@ -10,6 +10,7 @@ public class LevelSceneFlowController : MonoBehaviour
     [SerializeField] private LevelExit levelExit;
     [SerializeField] private PortalPulse portalVisual;
     [SerializeField] private GameObject completionUiRoot = null;
+    [SerializeField] private ResultStarsController starsController = null;
     [SerializeField] private bool disableMoverOnComplete = true;
     [Header("Completion Presentation")]
     [SerializeField] private float completionRevealDelay = 0.75f;
@@ -53,6 +54,12 @@ public class LevelSceneFlowController : MonoBehaviour
 
         if (completionEffect == null)
             completionEffect = FindAnyObjectByType<PortalCompletionEffect>();
+
+        if (starsController == null && completionUiRoot != null)
+            starsController = completionUiRoot.GetComponentInChildren<ResultStarsController>(true);
+
+        if (starsController == null)
+            starsController = FindAnyObjectByType<ResultStarsController>(FindObjectsInactive.Include);
 
         collectibles = FindCollectibles();
         int requiredCollectibles = ResolveRequiredCollectibles();
@@ -204,6 +211,9 @@ public class LevelSceneFlowController : MonoBehaviour
 
         if (completionUiRoot != null)
             completionUiRoot.SetActive(true);
+
+        if (starsController != null)
+            starsController.ShowStars(lastCompletionResult.Stars);
 
         LevelCompleted?.Invoke(lastCompletionResult);
         completionSequence = null;

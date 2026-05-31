@@ -55,6 +55,7 @@ Suggested main menu scene root hierarchy:
 
 - `Canvas`
 - `Background`
+- `AuthRoot`
 - `MainScreen`
 - `LevelScreen`
 - optional `Main Camera` for scene-authored menu visuals
@@ -188,24 +189,30 @@ When creating a new gameplay scene in Unity:
 12. Put blocking level props under the board root and keep their grid coordinates synced from transform position or explicit inspector values so visible obstacles and movement rules stay in sync across height layers.
 13. When converting scene objects to grid cells, derive `X` from world `X`, derive grid height from world `Y` minus any visual offset, and derive `Z` from world `Z`.
 14. Keep `GridBoard` focused on `cellSize`, `layerHeight`, and `origin`; let placed ground and obstacle cells define board bounds dynamically.
-15. Add `LevelSceneMetadata` and `LevelSceneFlowController` to each gameplay scene, plus a `LevelExit` on the portal tile, so completion can save stars and show the completion UI.
-16. Keep gameplay HUD and touch controls scene-authored or prefab-based; do not rely on `LevelSceneFlowController` to generate runtime HUD widgets.
-17. Prefer one reusable gameplay HUD prefab with a `GameplayHudController` bound to `GridMover`, `PlayerKeyRing`, and `LevelSceneMetadata` so moves, held keys, and level label stay in sync across all levels.
-18. Add `GridCollectible` to each required pickup object and keep its grid coordinates synced from transform position or explicit inspector values.
-19. Use `LevelSceneMetadata.requiredCollectibles` when a level needs an explicit objective count; leave it at `-1` to derive the requirement from placed `GridCollectible` objects.
-20. Bind the portal's `PortalPulse` visual to `LevelSceneFlowController` when possible so the portal can visibly switch from inactive to active.
-21. Add a scene-authored completion panel, such as `HudCanva/Victory`, with `LevelCompletionUiController`; bind its title, score/star labels, and optional retry, menu, and next-level buttons. Keep it hidden at scene start.
-22. Configure `LevelSceneFlowController.completionUiRoot` with the Victory object, set `completionRevealDelay`, and optionally bind a `PortalCompletionEffect` for the player shrink and flash effect or an Animator plus trigger for the transition that plays before the Victory UI appears.
-23. Set `LevelSceneFlowController.nextLevelSceneName` when the completion UI should enable a next-level button.
+15. Add `LevelSceneMetadata` and `LevelSceneFlowController` to each gameplay scene, plus a `LevelExit` on the portal tile, so completion can save progress and show the completion UI.
+16. Give each level a stable GUID in its metadata before it can save to Supabase. Keep this GUID stable after publishing; use `world` and `level` only as readable labels and ordering data.
+17. Keep gameplay HUD and touch controls scene-authored or prefab-based; do not rely on `LevelSceneFlowController` to generate runtime HUD widgets.
+18. Prefer one reusable gameplay HUD prefab with a `GameplayHudController` bound to `GridMover`, `PlayerKeyRing`, and `LevelSceneMetadata` so moves, held keys, and level label stay in sync across all levels.
+19. Add `GridCollectible` to each required pickup object and keep its grid coordinates synced from transform position or explicit inspector values.
+20. Use `LevelSceneMetadata.requiredCollectibles` when a level needs an explicit objective count; leave it at `-1` to derive the requirement from placed `GridCollectible` objects.
+21. Bind the portal's `PortalPulse` visual to `LevelSceneFlowController` when possible so the portal can visibly switch from inactive to active.
+22. Add a scene-authored completion panel, such as `HudCanva/Victory`, with `LevelCompletionUiController`; bind its star-based title messages, score/star labels, animated `ResultStarsController`, and optional retry, menu, and next-level buttons. The title message should reveal with its pop effect after the star animation finishes. Keep the panel hidden at scene start.
+23. Configure `LevelSceneFlowController.completionUiRoot` with the Victory object, bind `starsController` when it is not a child of the Victory object, set `completionRevealDelay`, and optionally bind a `PortalCompletionEffect` for the player shrink and flash effect or an Animator plus trigger for the transition that plays before the Victory UI appears.
+24. Set `LevelSceneFlowController.nextLevelSceneName` when the completion UI should enable a next-level button.
 
 When creating or maintaining the menu flow:
 
 1. Keep the title screen and level select in `MainMenu.unity`, not inside gameplay scenes.
 2. Build the menu directly in the scene hierarchy under a standard UI `Canvas`.
 3. Use a generic portrait phone reference resolution of `1080 x 1920`.
-4. Keep the main menu screen and the level-select screen as separate scene-authored UI roots, with a clear `Play` action to open level select and a clear `Back` action to return to the main menu.
-5. Let gameplay scenes stay focused on board, player, exits, and HUD.
-6. Use `SceneManager.LoadScene(..., LoadSceneMode.Single)` to move between `MainMenu.unity` and individual level scenes during the prototype.
+4. Create one `LevelCatalog` asset from `Assets > Create > PuzzleGame > Level Catalog` and fill it with every official level in progression order.
+5. Each `LevelCatalogEntry` must include a stable level GUID, numeric progression order, scene name, readable world/level label, and star thresholds.
+6. Add `SupabaseAuthService` to the menu composition root and configure the Supabase project URL, anon key, provider, and mobile redirect URL.
+7. Add `MainMenuAuthGate` and bind `AuthRoot` as the unauthenticated UI, the normal menu root as the authenticated UI, and the login button to the gate.
+8. Hide the main menu and level select until the auth gate reports an active Supabase session.
+9. Keep the main menu screen and the level-select screen as separate scene-authored UI roots, with a clear `Play` action to open level select and a clear `Back` action to return to the main menu.
+10. Let gameplay scenes stay focused on board, player, exits, and HUD.
+11. Use `SceneManager.LoadScene(..., LoadSceneMode.Single)` to move between `MainMenu.unity` and individual level scenes during the prototype.
 
 ## Test Aspect Ratios
 

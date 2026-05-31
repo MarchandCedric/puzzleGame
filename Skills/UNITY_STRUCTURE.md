@@ -20,6 +20,9 @@
 - `TokenService`
 
 All services should be injected into consumers rather than located globally at runtime.
+`SupabaseAuthService` is the current Unity-facing MVP auth adapter: it opens the
+Supabase OAuth URL, receives the deep-link callback, stores the access and refresh
+tokens locally, and exposes authentication state to menu UI.
 
 ---
 
@@ -36,6 +39,9 @@ All services should be injected into consumers rather than located globally at r
 - `GridCollectible` for scene-authored objective pickups that gate portal activation
 - `GridMover` as the Unity-facing movement adapter for the player object
 - `LevelSceneMetadata`, `LevelExit`, and `LevelSceneFlowController` for level identity, completion, result saving, and next/menu navigation hooks
+- `LevelCatalog` as the Unity-authored source of truth for official level order,
+  stable level GUIDs, scene names, readable world/level labels, and star thresholds
+- `LevelCatalogEntry` as one official level definition inside the catalog
 - `LevelCompletionResult` as the plain C# result payload for completed levels
 - `LevelObjectiveState` as the plain C# collectible progress and portal activation state
 - `IPlayerAnimationController` and adapters for mapping movement intent to model-specific animator parameters and visual-facing rotation
@@ -51,6 +57,9 @@ When scenes are authored with placed floor and obstacle pieces, board bounds sho
 - `MoveCounter`
 - `ScoreCalculator`
 
+During the MVP, star thresholds live in `LevelCatalog` and saved player score data
+stores only best move counts by stable level GUID.
+
 ---
 
 ## UI
@@ -59,6 +68,8 @@ When scenes are authored with placed floor and obstacle pieces, board bounds sho
 - `LevelSelect`
 - `HUD`
 - `EndLevelScreen`
+- `MainMenuAuthGate` for hiding the main menu and level select until a Supabase
+  session exists
 - `GameplayHudController` for binding scene-authored HUD prefabs to `GridMover`, `PlayerKeyRing`, `LevelSceneFlowController`, and `LevelSceneMetadata`
 - `LevelCompletionUiController` for binding scene-authored completion UI to moves, stars, retry, menu, and next-level actions
 

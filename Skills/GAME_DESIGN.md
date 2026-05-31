@@ -36,12 +36,19 @@ Each level defines:
 - `perfect_moves`
 - `good_moves`
 - `max_moves`
+- a stable level GUID used for persistence
 
 Example:
 
 - `<= 20` -> 3 stars
 - `<= 25` -> 2 stars
 - `<= 35` -> 1 star
+
+For the MVP, these thresholds live in Unity-authored level data. Saved cloud score
+data should store the best move count only; the displayed star result is derived
+from the saved move count and the level's current thresholds. This keeps level
+tuning flexible after publishing because updated thresholds can be reflected
+without rewriting every saved score row.
 
 ---
 
@@ -59,11 +66,13 @@ Example:
 
 ## Level Select Rules
 
-- Each level has `world`, `level`, and star move thresholds
+- Each level has a stable GUID, `world`, `level`, and star move thresholds
 - The player starts with only `1-1` unlocked
 - A level unlocks only after the previous level is completed with at least `1` star
 - If the player has already completed a level, the best star result and best move count should be shown in level select
 - Gameplay scenes should carry their own world and level identity so the menu can target them automatically
+- The stable GUID, not the readable `world-level` label, is the persistence identity
+- If local and cloud scores differ, the lower move count is the winning best score
 
 ---
 

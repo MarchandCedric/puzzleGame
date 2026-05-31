@@ -30,6 +30,10 @@ Each level defines:
 
 Score is based on number of actions (moves).
 
+For the MVP, Unity-authored level data is the source of truth for star thresholds.
+The cloud save stores the player's best move count per level, and stars are derived
+from that move count plus the current local level thresholds when shown.
+
 ---
 
 ## Features
@@ -50,7 +54,11 @@ Score is based on number of actions (moves).
 - Supabase (PostgreSQL)
 - Google authentication
 - Row Level Security (RLS)
-- SQL functions (RPC)
+- SQL functions (RPC) where server-side validation is needed
+
+MVP score persistence uses Supabase Auth plus a small `scores` table keyed by user
+and stable level GUID. Local storage remains an offline/cache layer, and launch or
+login sync resolves score conflicts by keeping the lower move count.
 
 ---
 
