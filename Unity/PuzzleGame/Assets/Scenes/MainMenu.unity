@@ -564,14 +564,20 @@ MonoBehaviour:
   authService: {fileID: 970906385}
   loginRoot: {fileID: 1307095800}
   authenticatedRoot: {fileID: 2102707765}
-  loginLoadingRoot: {fileID: 483780221}
   loginButton: {fileID: 483780222}
   signOutButton: {fileID: 0}
-  loginPendingTintTargets: []
-  loginPendingTint: {r: 0.55, g: 0.55, b: 0.55, a: 0.65}
-  loginCanvasGroup: {fileID: 0}
-  authenticatedCanvasGroup: {fileID: 0}
-  transitionDuration: 0.25
+  loginPendingTintTargets:
+  - {fileID: 483780224}
+  loginPendingTint: {r: 0.9764706, g: 0.4509804, b: 0.08627451, a: 0.65}
+  pulseLoginButtonWhilePending: 1
+  pendingPulseMinAlpha: 0.45
+  pendingPulseSpeed: 2.5
+  loginButtonText: {fileID: 1402777927}
+  loginPendingText: Logging...
+  loginPendingTextColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  loginCanvasGroup: {fileID: 1307095802}
+  authenticatedCanvasGroup: {fileID: 2102707767}
+  transitionDuration: 2
 --- !u!4 &121424787
 Transform:
   m_ObjectHideFlags: 0
@@ -5767,8 +5773,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1307095801}
+  - component: {fileID: 1307095802}
   m_Layer: 5
-  m_Name: NotConnectedUI
+  m_Name: LoginUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5796,6 +5803,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &1307095802
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1307095800}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1309330626
 GameObject:
   m_ObjectHideFlags: 0
@@ -9055,7 +9074,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SupabaseAuthTestLogin
   authService: {fileID: 970906385}
-  accessToken: eyJhbGciOiJFUzI1NiIsImtpZCI6IjQ4YzU5OTY2LTU1MGEtNGU5MS04ZDkwLTg5OTNjZTc5NTQ3ZCIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2J3bG1jaXpweG1scmJvYW5sYWp5LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI4MzBiMmIyYi01YjYxLTRhN2UtYWYxYi01OGNhNzBhZDZkZjgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwMjE2MzMxLCJpYXQiOjE3ODAyMTI3MzEsImVtYWlsIjoiY2VkbGYwNUBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6Imdvb2dsZSIsInByb3ZpZGVycyI6WyJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0pwWjR2aEZLclpfQUQ2aUdsZzlEWGI4bDhOQUJXMkRrMUdnSHJiMlRwRWZaMXhCZz1zOTYtYyIsImVtYWlsIjoiY2VkbGYwNUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiQ2VkcmljIG1hcmNoYW5kIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibmFtZSI6IkNlZHJpYyBtYXJjaGFuZCIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0pwWjR2aEZLclpfQUQ2aUdsZzlEWGI4bDhOQUJXMkRrMUdnSHJiMlRwRWZaMXhCZz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE2MzY0NTQ2MjQ4NzY3NDIwODk0Iiwic3ViIjoiMTE2MzY0NTQ2MjQ4NzY3NDIwODk0In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib2F1dGgiLCJ0aW1lc3RhbXAiOjE3ODAyMTI3MzF9XSwic2Vzc2lvbl9pZCI6ImJhZTc1NTZjLWZhNTYtNDhmYS1hZWIxLTI0MzEyOWIyNWFlZCIsImlzX2Fub255bW91cyI6ZmFsc2V9.AuaWv3J1NOkUfMHTLcegNROfpJicSdhyjIp9CWRcn0yJavdwwCxKt8cLYdc-ZAJAqHEGkbvZgyGASNV_aMu-Ig
+  authGate: {fileID: 0}
+  accessToken: eyJhbGciOiJFUzI1NiIsImtpZCI6IjQ4YzU5OTY2LTU1MGEtNGU5MS04ZDkwLTg5OTNjZTc5NTQ3ZCIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2J3bG1jaXpweG1scmJvYW5sYWp5LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI4MzBiMmIyYi01YjYxLTRhN2UtYWYxYi01OGNhNzBhZDZkZjgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwMjIyMTU3LCJpYXQiOjE3ODAyMTg1NTcsImVtYWlsIjoiY2VkbGYwNUBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6Imdvb2dsZSIsInByb3ZpZGVycyI6WyJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0pwWjR2aEZLclpfQUQ2aUdsZzlEWGI4bDhOQUJXMkRrMUdnSHJiMlRwRWZaMXhCZz1zOTYtYyIsImVtYWlsIjoiY2VkbGYwNUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiQ2VkcmljIG1hcmNoYW5kIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibmFtZSI6IkNlZHJpYyBtYXJjaGFuZCIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0pwWjR2aEZLclpfQUQ2aUdsZzlEWGI4bDhOQUJXMkRrMUdnSHJiMlRwRWZaMXhCZz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE2MzY0NTQ2MjQ4NzY3NDIwODk0Iiwic3ViIjoiMTE2MzY0NTQ2MjQ4NzY3NDIwODk0In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib2F1dGgiLCJ0aW1lc3RhbXAiOjE3ODAyMTg1NTd9XSwic2Vzc2lvbl9pZCI6IjVjNzU1N2QwLWMyOTQtNDA0Ny04ZGQ5LWU5NzU0YmRjYjA4NyIsImlzX2Fub255bW91cyI6ZmFsc2V9.bLWaDWCTY4SjmWGHXTkjdjwkmWzrXI11ogSiSop9lTsdzNTT3Ry3Ah8A7ukdHBBUHQfRhSU8jBrPO5cDxyzeHQ
 --- !u!4 &1977445958
 Transform:
   m_ObjectHideFlags: 0
@@ -9201,6 +9221,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2102707766}
+  - component: {fileID: 2102707767}
   m_Layer: 5
   m_Name: ConnectedUI
   m_TagString: Untagged
@@ -9230,6 +9251,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &2102707767
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2102707765}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &2103190315
 GameObject:
   m_ObjectHideFlags: 0

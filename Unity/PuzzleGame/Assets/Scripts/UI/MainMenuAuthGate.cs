@@ -8,7 +8,6 @@ public class MainMenuAuthGate : MonoBehaviour
     [SerializeField] private SupabaseAuthService authService;
     [SerializeField] private GameObject loginRoot;
     [SerializeField] private GameObject authenticatedRoot;
-    [SerializeField] private GameObject loginLoadingRoot;
     [SerializeField] private Button loginButton;
     [SerializeField] private Button signOutButton;
     [SerializeField] private Graphic[] loginPendingTintTargets;
@@ -26,6 +25,7 @@ public class MainMenuAuthGate : MonoBehaviour
 
     private bool isLoginPending;
     private bool hasAppliedInitialState;
+    private bool? currentAuthenticatedState;
     private Coroutine transitionRoutine;
     private Coroutine loginPendingPulseRoutine;
     private Color[] loginNormalTints;
@@ -57,7 +57,11 @@ public class MainMenuAuthGate : MonoBehaviour
         if (signOutButton != null)
             signOutButton.onClick.AddListener(SignOut);
 
-        Refresh();
+        ShowLoginImmediately();
+        ApplyLoginPendingState(false);
+
+        if (authService != null && authService.IsAuthenticated)
+            StartCoroutine(ApplyAuthenticatedSessionAfterFirstFrame());
     }
 
     private void OnDisable()
@@ -79,6 +83,11 @@ public class MainMenuAuthGate : MonoBehaviour
         ApplyLoginPendingState(isLoginPending && !isAuthenticated);
     }
 
+    public void RefreshFromAuthService()
+    {
+        Refresh();
+    }
+
     private void HandleAuthenticationChanged(bool isAuthenticated)
     {
         isLoginPending = false;
@@ -88,11 +97,19 @@ public class MainMenuAuthGate : MonoBehaviour
 
     private void ApplyAuthenticatedState(bool isAuthenticated)
     {
+        if (currentAuthenticatedState.HasValue && currentAuthenticatedState.Value == isAuthenticated)
+        {
+            SetRootVisible(loginRoot, loginCanvasGroup, !isAuthenticated, true);
+            SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, isAuthenticated, true);
+            return;
+        }
+
         if (!hasAppliedInitialState || transitionDuration <= 0f)
         {
             SetRootVisible(loginRoot, loginCanvasGroup, !isAuthenticated, true);
             SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, isAuthenticated, true);
             hasAppliedInitialState = true;
+            currentAuthenticatedState = isAuthenticated;
             return;
         }
 
@@ -100,6 +117,7 @@ public class MainMenuAuthGate : MonoBehaviour
             StopCoroutine(transitionRoutine);
 
         transitionRoutine = StartCoroutine(TransitionAuthenticatedState(isAuthenticated));
+        currentAuthenticatedState = isAuthenticated;
     }
 
     private void SignIn()
@@ -110,6 +128,28 @@ public class MainMenuAuthGate : MonoBehaviour
         isLoginPending = true;
         ApplyLoginPendingState(true);
         authService.SignIn();
+    }
+
+    private void ShowLoginImmediately()
+    {
+        if (transitionRoutine != null)
+        {
+            StopCoroutine(transitionRoutine);
+            transitionRoutine = null;
+        }
+
+        SetRootVisible(loginRoot, loginCanvasGroup, true, true);
+        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
+        hasAppliedInitialState = true;
+        currentAuthenticatedState = false;
+    }
+
+    private IEnumerator ApplyAuthenticatedSessionAfterFirstFrame()
+    {
+        yield return null;
+
+        if (authService != null && authService.IsAuthenticated)
+            ApplyAuthenticatedState(true);
     }
 
     private void SignOut()
@@ -123,9 +163,6 @@ public class MainMenuAuthGate : MonoBehaviour
 
     private void ApplyLoginPendingState(bool isPending)
     {
-        if (loginLoadingRoot != null)
-            loginLoadingRoot.SetActive(isPending);
-
         if (loginButton != null)
             loginButton.interactable = !isPending;
 
