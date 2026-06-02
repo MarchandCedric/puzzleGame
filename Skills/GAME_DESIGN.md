@@ -67,9 +67,13 @@ without rewriting every saved score row.
 ## Level Select Rules
 
 - Each level has a stable GUID, `world`, `level`, and star move thresholds
+- Each level catalog entry can define a display title for menu and level-select UI
 - The player starts with only `1-1` unlocked
 - A level unlocks only after the previous level is completed with at least `1` star
+- The highest available level is the first locked step after the last sequential level completed with at least `1` star
 - If the player has already completed a level, the best star result and best move count should be shown in level select
+- Local MVP progress is stored outside `LevelCatalog`; the catalog describes levels, while local player best moves and stars are stored in PlayerPrefs-compatible progress keys
+- Local MVP progress also tracks total attempts per level. An attempt is recorded when a gameplay scene starts, so starts, restarts, selected-level loads, and next-level loads are counted consistently.
 - Gameplay scenes should carry their own world and level identity so the menu can target them automatically
 - The stable GUID, not the readable `world-level` label, is the persistence identity
 - If local and cloud scores differ, the lower move count is the winning best score
@@ -79,7 +83,19 @@ without rewriting every saved score row.
 ## Token System
 
 - 1 level attempt = 1 token
-- Regeneration:
+- Local MVP:
+  - Starting a level consumes 1 attempt
+  - Restarting a level consumes 1 attempt
+  - Continuing from a completed level to the next level consumes 1 attempt
+  - Free players can use 10 attempts before a cooldown starts
+  - Cooldown lasts 10 minutes
+  - Attempt count and cooldown end time must persist across app restarts and work offline
+  - A player with a locally known active subscription bypasses the limit and resets the local counter
+- Future online version:
+  - Supabase should become authoritative for online users when the economy needs stronger validation
+  - The client should keep the same local gate as an offline fallback
+  - Offline cooldowns are a soft limit and can be bypassed by determined users changing local device state
+- Future regeneration sources:
   - Time-based
   - Rewarded ads
   - Purchases

@@ -21,8 +21,15 @@
 
 All services should be injected into consumers rather than located globally at runtime.
 `SupabaseAuthService` is the current Unity-facing MVP auth adapter: it opens the
-Supabase OAuth URL, receives the deep-link callback, stores the access and refresh
-tokens locally, and exposes authentication state to menu UI.
+Supabase OAuth URL, receives the implicit-flow deep-link callback, extracts
+Supabase access and refresh tokens from the callback URL fragment, stores those
+tokens locally, and exposes authentication state to menu UI. Google OAuth requests
+the `openid email profile` scopes through Supabase. On Android, the adapter also
+checks the Activity intent data when the app starts or regains focus so auth
+callbacks still work if Unity's deep-link event is missed.
+- `LevelAttemptService` owns the local attempt/cooldown economy in plain C#.
+  `LocalLevelAttemptGate` is the Unity-facing PlayerPrefs-backed adapter used by
+  level start and restart UI until Supabase-backed validation is added.
 
 ---
 
