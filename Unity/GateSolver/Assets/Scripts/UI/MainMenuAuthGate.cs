@@ -8,7 +8,12 @@ public class MainMenuAuthGate : MonoBehaviour
     [SerializeField] private SupabaseAuthService authService;
     [SerializeField] private GameObject loginRoot;
     [SerializeField] private GameObject authenticatedRoot;
+    [SerializeField] private GameObject warningOfflineRoot;
+    [SerializeField] private GameObject playOfflineUi;
     [SerializeField] private Button loginButton;
+    [SerializeField] private Button playOfflineButton;
+    [SerializeField] private Button confirmOfflineButton;
+    [SerializeField] private Button cancelOfflineButton;
     [SerializeField] private Button signOutButton;
     [SerializeField] private Graphic[] loginPendingTintTargets;
     [SerializeField] private Color loginPendingTint = new Color(0.55f, 0.55f, 0.55f, 0.65f);
@@ -24,6 +29,7 @@ public class MainMenuAuthGate : MonoBehaviour
     [SerializeField] private float transitionDuration = 0.25f;
 
     private bool isLoginPending;
+    private bool isOfflineSession;
     private bool hasAppliedInitialState;
     private bool? currentAuthenticatedState;
     private Coroutine transitionRoutine;
@@ -54,6 +60,15 @@ public class MainMenuAuthGate : MonoBehaviour
         if (loginButton != null)
             loginButton.onClick.AddListener(SignIn);
 
+        if (playOfflineButton != null)
+            playOfflineButton.onClick.AddListener(ShowOfflineWarning);
+
+        if (confirmOfflineButton != null)
+            confirmOfflineButton.onClick.AddListener(ConfirmOfflinePlay);
+
+        if (cancelOfflineButton != null)
+            cancelOfflineButton.onClick.AddListener(CancelOfflinePlay);
+
         if (signOutButton != null)
             signOutButton.onClick.AddListener(SignOut);
 
@@ -72,6 +87,15 @@ public class MainMenuAuthGate : MonoBehaviour
         if (loginButton != null)
             loginButton.onClick.RemoveListener(SignIn);
 
+        if (playOfflineButton != null)
+            playOfflineButton.onClick.RemoveListener(ShowOfflineWarning);
+
+        if (confirmOfflineButton != null)
+            confirmOfflineButton.onClick.RemoveListener(ConfirmOfflinePlay);
+
+        if (cancelOfflineButton != null)
+            cancelOfflineButton.onClick.RemoveListener(CancelOfflinePlay);
+
         if (signOutButton != null)
             signOutButton.onClick.RemoveListener(SignOut);
     }
@@ -85,8 +109,24 @@ public class MainMenuAuthGate : MonoBehaviour
     public void Refresh()
     {
         bool isAuthenticated = authService != null && authService.IsAuthenticated;
-        ApplyAuthenticatedState(isAuthenticated);
+        if (isAuthenticated)
+        {
+            isOfflineSession = false;
+            ApplyAuthenticatedState(true);
+            HideOfflineUi();
+        }
+        else if (isOfflineSession)
+        {
+            ApplyOfflineState();
+        }
+        else
+        {
+            ApplyAuthenticatedState(false);
+            HideOfflineUi();
+        }
+
         ApplyLoginPendingState(isLoginPending && !isAuthenticated);
+        ApplySessionControls(isAuthenticated);
     }
 
     public void RefreshFromAuthService()
@@ -97,8 +137,13 @@ public class MainMenuAuthGate : MonoBehaviour
     private void HandleAuthenticationChanged(bool isAuthenticated)
     {
         isLoginPending = false;
+        if (isAuthenticated)
+            isOfflineSession = false;
+
         ApplyAuthenticatedState(isAuthenticated);
+        HideOfflineUi();
         ApplyLoginPendingState(false);
+        ApplySessionControls(isAuthenticated);
     }
 
     private void ApplyAuthenticatedState(bool isAuthenticated)
@@ -131,9 +176,63 @@ public class MainMenuAuthGate : MonoBehaviour
         if (authService == null)
             return;
 
+        isOfflineSession = false;
+        HideOfflineUi();
         isLoginPending = true;
         ApplyLoginPendingState(true);
+        ApplySessionControls(false);
         authService.SignIn();
+    }
+
+    public void ShowOfflineWarning()
+    {
+        if (warningOfflineRoot == null)
+        {
+            Debug.LogWarning($"{nameof(MainMenuAuthGate)} cannot show offline warning because warningOfflineRoot is not assigned.");
+            return;
+        }
+
+        if (playOfflineUi != null)
+            playOfflineUi.SetActive(false);
+
+        SetRootVisible(loginRoot, loginCanvasGroup, true, true);
+        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
+           
+        warningOfflineRoot.SetActive(true);
+    }
+
+
+    public void FromOfflineToLogin()
+    {
+        isLoginPending = false;
+        isOfflineSession = true;
+        SetRootVisible(loginRoot, loginCanvasGroup, true, true);
+        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
+        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
+        SetRootVisible(playOfflineUi, authenticatedCanvasGroup, false, true);
+        
+        HideOfflineUi();
+        ApplySessionControls(false);
+
+        
+    }
+
+    public void ConfirmOfflinePlay()
+    {
+           
+        isLoginPending = false;
+        isOfflineSession = true;
+        ApplyLoginPendingState(false);
+        ApplyOfflineState();
+        ApplySessionControls(false);
+    }
+
+    public void CancelOfflinePlay()
+    {
+        isOfflineSession = false;
+        HideOfflineUi();
+        ApplyAuthenticatedState(false);
+        ApplySessionControls(false);
     }
 
     private void ShowLoginImmediately()
@@ -146,6 +245,8 @@ public class MainMenuAuthGate : MonoBehaviour
 
         SetRootVisible(loginRoot, loginCanvasGroup, true, true);
         SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
+        HideOfflineUi();
+        ApplySessionControls(false);
         hasAppliedInitialState = true;
         currentAuthenticatedState = false;
     }
@@ -161,10 +262,55 @@ public class MainMenuAuthGate : MonoBehaviour
     private void SignOut()
     {
         isLoginPending = false;
+        isOfflineSession = false;
+        HideOfflineUi();
         ApplyLoginPendingState(false);
 
         if (authService != null)
             authService.SignOut();
+        else
+            ApplyAuthenticatedState(false);
+    }
+
+    private void ApplyOfflineState()
+    {
+        if (transitionRoutine != null)
+        {
+            StopCoroutine(transitionRoutine);
+            transitionRoutine = null;
+        }
+
+        if (warningOfflineRoot != null)
+            warningOfflineRoot.SetActive(false);
+
+        SetRootVisible(loginRoot, loginCanvasGroup, true, true);
+        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
+
+        if (playOfflineUi != null)
+            playOfflineUi.SetActive(true);
+        else
+            Debug.LogWarning($"{nameof(MainMenuAuthGate)} cannot show offline play UI because playOfflineUi is not assigned.");
+
+        if (loginRoot != null)
+            loginRoot.SetActive(false);
+
+        hasAppliedInitialState = true;
+        currentAuthenticatedState = false;
+    }
+
+    private void HideOfflineUi()
+    {
+        if (warningOfflineRoot != null)
+            warningOfflineRoot.SetActive(false);
+
+        if (playOfflineUi != null)
+            playOfflineUi.SetActive(false);
+    }
+
+    private void ApplySessionControls(bool isAuthenticated)
+    {
+        if (signOutButton != null)
+            signOutButton.gameObject.SetActive(isAuthenticated);
     }
 
     private void ApplyLoginPendingState(bool isPending)

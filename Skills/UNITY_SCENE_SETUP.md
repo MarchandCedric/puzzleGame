@@ -208,11 +208,13 @@ When creating or maintaining the menu flow:
 4. Create one `LevelCatalog` asset from `Assets > Create > PuzzleGame > Level Catalog` and fill it with every official level in progression order.
 5. Each `LevelCatalogEntry` must include a stable level GUID, numeric progression order, scene name, readable world/level label, and star thresholds.
 6. Add `SupabaseAuthService` to the menu composition root and configure the Supabase project URL, anon key, provider, and mobile redirect URL.
-7. Add `MainMenuAuthGate` and bind `AuthRoot` as the unauthenticated UI, the normal menu root as the authenticated UI, and the login button to the gate.
-8. Hide the main menu and level select until the auth gate reports an active Supabase session.
-9. Keep the main menu screen and the level-select screen as separate scene-authored UI roots, with a clear `Play` action to open level select and a clear `Back` action to return to the main menu.
-10. Let gameplay scenes stay focused on board, player, exits, and HUD.
-11. Use `SceneManager.LoadScene(..., LoadSceneMode.Single)` to move between `MainMenu.unity` and individual level scenes during the prototype.
+7. Add `MainMenuAuthGate` and bind `AuthRoot` as the unauthenticated UI, the normal menu root as the authenticated UI, the login button, the `WarningOffline` popup root, the `PlayOfflineUI` offline destination root, the offline button, the offline confirm/cancel buttons, and the logout button to the gate.
+8. Hide the main menu and level select until the auth gate reports either an active Supabase session or a confirmed offline session.
+9. Offline play must show the scene-authored `WarningOffline` popup first. Continue hides the warning and shows `PlayOfflineUI`; cancel hides the warning and returns to the login UI.
+10. Hide the logout button for offline sessions because no Supabase session exists.
+11. Keep the main menu screen and the level-select screen as separate scene-authored UI roots, with a clear `Play` action to open level select and a clear `Back` action to return to the main menu.
+12. Let gameplay scenes stay focused on board, player, exits, and HUD.
+13. Use `SceneManager.LoadScene(..., LoadSceneMode.Single)` to move between `MainMenu.unity` and individual level scenes during the prototype.
 
 ## Test Aspect Ratios
 

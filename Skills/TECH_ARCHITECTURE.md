@@ -25,10 +25,16 @@
 3. Client uses JWT for requests
 4. RLS enforces permissions
 
-For the Unity MVP, the main menu starts in an unauthenticated state and shows only
-login UI. The login button opens Supabase OAuth in the system browser. Supabase
-redirects back to the app through the configured mobile deep link, and Unity stores
-the returned session tokens for later score requests.
+For the Unity MVP, the main menu starts in an unauthenticated state and shows
+online login plus an offline entry option. The login button opens Supabase OAuth
+in the system browser. Supabase redirects back to the app through the configured
+mobile deep link, and Unity stores the returned session tokens for later score
+requests.
+
+Offline entry must warn the player that progress may not sync and data may be
+lost. Confirming offline play may reveal the same menu and level-select UI as an
+authenticated session, but it must not create a fake Supabase session or token.
+Backend writes should continue to require `SupabaseAuthService.IsAuthenticated`.
 
 ---
 

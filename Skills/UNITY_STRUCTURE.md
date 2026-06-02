@@ -75,8 +75,10 @@ stores only best move counts by stable level GUID.
 - `LevelSelect`
 - `HUD`
 - `EndLevelScreen`
-- `MainMenuAuthGate` for hiding the main menu and level select until a Supabase
-  session exists
+- `MainMenuAuthGate` for hiding the main menu and level select until either a
+  Supabase session exists or the player confirms offline play after the warning
+  prompt. Offline play is a UI access state only and must not be treated as an
+  authenticated backend session.
 - `GameplayHudController` for binding scene-authored HUD prefabs to `GridMover`, `PlayerKeyRing`, `LevelSceneFlowController`, and `LevelSceneMetadata`
 - `LevelCompletionUiController` for binding scene-authored completion UI to moves, stars, retry, menu, and next-level actions
 
