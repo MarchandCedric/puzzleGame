@@ -206,12 +206,13 @@ public class MainMenuAuthGate : MonoBehaviour
     {
         isLoginPending = false;
         isOfflineSession = true;
-        SetRootVisible(loginRoot, loginCanvasGroup, true, true);
-        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
-        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
-        SetRootVisible(playOfflineUi, authenticatedCanvasGroup, false, true);
+        //SetRootVisible(loginRoot, loginCanvasGroup, true, true);
+        //SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
+        //SetRootVisible(playOfflineUi, authenticatedCanvasGroup, false, true);
+
+        ShowUiWithTransition(playOfflineUi, loginRoot);
         
-        HideOfflineUi();
+        //HideOfflineUi();
         ApplySessionControls(false);
 
         
@@ -283,16 +284,12 @@ public class MainMenuAuthGate : MonoBehaviour
         if (warningOfflineRoot != null)
             warningOfflineRoot.SetActive(false);
 
-        SetRootVisible(loginRoot, loginCanvasGroup, true, true);
-        SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
-
         if (playOfflineUi != null)
-            playOfflineUi.SetActive(true);
+        {
+            ShowUiWithTransition(loginRoot,playOfflineUi);
+        }
         else
             Debug.LogWarning($"{nameof(MainMenuAuthGate)} cannot show offline play UI because playOfflineUi is not assigned.");
-
-        if (loginRoot != null)
-            loginRoot.SetActive(false);
 
         hasAppliedInitialState = true;
         currentAuthenticatedState = false;
@@ -305,6 +302,33 @@ public class MainMenuAuthGate : MonoBehaviour
 
         if (playOfflineUi != null)
             playOfflineUi.SetActive(false);
+    }
+
+    public void ShowUiWithTransition(GameObject uiToHide, GameObject uiToShow)
+    {
+        if (uiToHide == null && uiToShow == null)
+            return;
+
+        if (uiToHide == uiToShow)
+        {
+            SetUiVisible(uiToShow, true, true);
+            return;
+        }
+
+        if (transitionRoutine != null)
+        {
+            StopCoroutine(transitionRoutine);
+            transitionRoutine = null;
+        }
+
+        if (!hasAppliedInitialState || transitionDuration <= 0f || !isActiveAndEnabled)
+        {
+            SetUiVisible(uiToHide, false, true);
+            SetUiVisible(uiToShow, true, true);
+            return;
+        }
+
+        transitionRoutine = StartCoroutine(TransitionUi(uiToHide, uiToShow));
     }
 
     private void ApplySessionControls(bool isAuthenticated)
@@ -415,6 +439,83 @@ public class MainMenuAuthGate : MonoBehaviour
         SetRootVisible(outgoingRoot, outgoingGroup, false, true);
         SetRootVisible(incomingRoot, incomingGroup, true, true);
         transitionRoutine = null;
+    }
+
+    private IEnumerator TransitionUi(GameObject outgoingRoot, GameObject incomingRoot)
+    {
+        CanvasGroup outgoingGroup = GetOrAddCanvasGroup(outgoingRoot);
+        CanvasGroup incomingGroup = GetOrAddCanvasGroup(incomingRoot);
+
+        if (outgoingRoot != null)
+            outgoingRoot.SetActive(true);
+
+        if (outgoingGroup != null)
+        {
+            outgoingGroup.alpha = 1f;
+            outgoingGroup.interactable = true;
+            outgoingGroup.blocksRaycasts = false;
+        }
+
+        if (incomingRoot != null)
+            incomingRoot.SetActive(true);
+
+        if (incomingGroup != null)
+        {
+            incomingGroup.alpha = 0f;
+            incomingGroup.interactable = true;
+            incomingGroup.blocksRaycasts = false;
+        }
+
+        Canvas.ForceUpdateCanvases();
+        yield return null;
+
+        SetCanvasAlpha(incomingGroup, 0f);
+
+        float fadeDuration = Mathf.Max(0.01f, transitionDuration) * 0.5f;
+
+        yield return FadeCanvasGroup(outgoingGroup, 1f, 0f, fadeDuration);
+
+        SetUiVisible(outgoingRoot, false, true);
+
+        yield return FadeCanvasGroup(incomingGroup, 0f, 1f, fadeDuration);
+
+        SetUiVisible(incomingRoot, true, true);
+        transitionRoutine = null;
+    }
+
+    private static IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float fromAlpha, float toAlpha, float duration)
+    {
+        if (canvasGroup == null)
+            yield break;
+
+        float elapsed = 0f;
+        canvasGroup.alpha = fromAlpha;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            canvasGroup.alpha = Mathf.Lerp(fromAlpha, toAlpha, t);
+            yield return null;
+        }
+
+        canvasGroup.alpha = toAlpha;
+    }
+
+    private static void SetUiVisible(GameObject root, bool isVisible, bool setFinalAlpha)
+    {
+        SetRootVisible(root, GetOrAddCanvasGroup(root), isVisible, setFinalAlpha);
+    }
+
+    private static CanvasGroup GetOrAddCanvasGroup(GameObject root)
+    {
+        if (root == null)
+            return null;
+
+        if (!root.TryGetComponent(out CanvasGroup canvasGroup))
+            canvasGroup = root.AddComponent<CanvasGroup>();
+
+        return canvasGroup;
     }
 
     private static void SetRootVisible(GameObject root, CanvasGroup canvasGroup, bool isVisible, bool setFinalAlpha)
