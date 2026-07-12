@@ -1,10 +1,28 @@
-﻿[mcp_servers.unity-mcp]
+[mcp_servers.unity-mcp]
 command = "C:\\Users\\cedlf\\.unity\\relay\\relay_win.exe"
 args = ["--mcp"]
 
 [mcp_servers.unity-mcp.tools.Unity_GetConsoleLogs]
 approval_mode = "approve"
+
+[mcp_servers.unity-mcp.tools.Unity_RunCommand]
+approval_mode = "approve"
+
+[mcp_servers.unity-mcp.tools.Unity_GetUserGuidelines]
+approval_mode = "approve"
+
+[mcp_servers.unity-mcp.tools.Unity_ManageEditor]
+approval_mode = "approve"
+
+[mcp_servers.unity-mcp.tools.Unity_ListResources]
+approval_mode = "approve"
+
+[mcp_servers.unity-mcp.tools.Unity_ManageMenuItem]
+approval_mode = "approve"
 [mcp_servers.blender]
 command = "C:\\Users\\cedlf\\Documents\\Projets Ced\\PuzzleGame\\Unity\\GateSolver\\Tools\\blender-mcp\\.venv\\Scripts\\python.exe"
 args = ["-m", "blmcp"]
+
+[mcp_servers.blender.tools.execute_blender_code]
+approval_mode = "approve"
 

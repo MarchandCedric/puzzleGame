@@ -5,6 +5,7 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
     [Header("References")]
     [SerializeField] private Animator animator;
     [SerializeField] private Transform visualRoot;
+    [SerializeField] private bool preserveAnimatorLocalScale = true;
 
     [Header("General Parameters")]
     [SerializeField] private string movingBoolParameter = "Walk_Anim";
@@ -24,6 +25,8 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
 
     private bool hasTargetYaw;
     private float targetYaw;
+    private Transform animatorTransform;
+    private Vector3 animatorInitialLocalScale = Vector3.one;
 
     private void Awake()
     {
@@ -32,6 +35,12 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
 
         if (visualRoot == null)
             visualRoot = transform;
+
+        if (animator != null)
+        {
+            animatorTransform = animator.transform;
+            animatorInitialLocalScale = animatorTransform.localScale;
+        }
     }
 
     private void Update()
@@ -48,6 +57,11 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
             hasTargetYaw = false;
     }
 
+    private void LateUpdate()
+    {
+        RestoreAnimatorScale();
+    }
+
     public void BeginMove(MoveAnimationDirection direction)
     {
         if (animator == null)
@@ -56,6 +70,7 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
         FaceDirection(direction);
         SetBoolIfConfigured(movingBoolParameter, true);
         SetDirectionalState(direction, true);
+        RestoreAnimatorScale();
     }
 
     public void EndMove()
@@ -65,6 +80,15 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
 
         SetBoolIfConfigured(movingBoolParameter, false);
         ClearDirectionalState();
+        RestoreAnimatorScale();
+    }
+
+    private void RestoreAnimatorScale()
+    {
+        if (!preserveAnimatorLocalScale || animatorTransform == null)
+            return;
+
+        animatorTransform.localScale = animatorInitialLocalScale;
     }
 
     private void SetDirectionalState(MoveAnimationDirection direction, bool value)
