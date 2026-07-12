@@ -14,6 +14,10 @@ public class LevelSceneFlowController : MonoBehaviour
     [SerializeField] private bool disableMoverOnComplete = true;
     [Header("Completion Presentation")]
     [SerializeField] private float completionRevealDelay = 0.75f;
+    [SerializeField] private float completionEffectDelay = 0.5f;
+
+    [SerializeField] private float beforeCompletionAnimationDelay = 0.5f;
+[SerializeField] private float afterCompletionAnimationDelay = 0.75f;
     [SerializeField] private PortalCompletionEffect completionEffect = null;
     [SerializeField] private Animator completionAnimation = null;
     [SerializeField] private string completionAnimationTrigger = "Play";
@@ -185,31 +189,58 @@ public class LevelSceneFlowController : MonoBehaviour
     }
 
     private void BeginCompleteLevel(int moveCount)
-    {
-        if (hasCompleted || metadata == null)
-            return;
+{
+    if (hasCompleted || metadata == null)
+        return;
 
-        hasCompleted = true;
-        int stars = EvaluateStars(moveCount);
-        lastCompletionResult = new LevelCompletionResult(metadata.World, metadata.Level, moveCount, stars);
-        SaveResult(moveCount, stars);
+    hasCompleted = true;
+    int stars = EvaluateStars(moveCount);
+    lastCompletionResult = new LevelCompletionResult(metadata.World, metadata.Level, moveCount, stars);
+    SaveResult(moveCount, stars);
 
-        if (disableMoverOnComplete && mover != null)
-            mover.enabled = false;
+    if (disableMoverOnComplete && mover != null)
+        mover.enabled = false;
 
-        PlayCompletionAnimation();
-        PlayCompletionEffect();
+    if (completionSequence != null)
+        StopCoroutine(completionSequence);
 
-        if (completionSequence != null)
-            StopCoroutine(completionSequence);
+    completionSequence = StartCoroutine(CompleteLevelSequence());
+}
 
-        completionSequence = StartCoroutine(ShowCompletionAfterDelay());
-    }
+    private IEnumerator CompleteLevelSequence()
+{
+
+    
+    if (!string.IsNullOrWhiteSpace(completionAnimationTrigger))
+                completionAnimation.SetTrigger(completionAnimationTrigger);
+
+    if (beforeCompletionAnimationDelay > 0f)
+        yield return new WaitForSeconds(beforeCompletionAnimationDelay);
+
+    PlayCompletionAnimation();
+
+    if (afterCompletionAnimationDelay > 0f)
+        yield return new WaitForSeconds(afterCompletionAnimationDelay);
+
+    PlayCompletionEffect();
+
+    if (completionRevealDelay > 0f)
+        yield return new WaitForSeconds(completionRevealDelay);
+
+    if (completionUiRoot != null)
+        completionUiRoot.SetActive(true);
+
+    if (starsController != null)
+        starsController.ShowStars(lastCompletionResult.Stars);
+
+    LevelCompleted?.Invoke(lastCompletionResult);
+    completionSequence = null;
+}
 
     private IEnumerator ShowCompletionAfterDelay()
     {
-        if (completionRevealDelay > 0f)
-            yield return new WaitForSeconds(completionRevealDelay);
+        if (completionEffectDelay  > 0f)
+            yield return new WaitForSeconds(completionEffectDelay );
 
         if (completionAnimation != null && fitCompletionAnimationToDelay)
             completionAnimation.speed = 1f;
@@ -229,15 +260,13 @@ public class LevelSceneFlowController : MonoBehaviour
         if (completionAnimation == null)
             return;
 
-        if (fitCompletionAnimationToDelay && completionRevealDelay > 0f)
+        if (fitCompletionAnimationToDelay && completionEffectDelay  > 0f)
         {
             float clipLength = GetFirstAnimationClipLength(completionAnimation);
             if (clipLength > 0f)
-                completionAnimation.speed = clipLength / completionRevealDelay;
+                completionAnimation.speed = clipLength / completionEffectDelay ;
         }
 
-        if (!string.IsNullOrWhiteSpace(completionAnimationTrigger))
-            completionAnimation.SetTrigger(completionAnimationTrigger);
     }
 
     private void PlayCompletionEffect()
@@ -245,7 +274,7 @@ public class LevelSceneFlowController : MonoBehaviour
         if (completionEffect == null || mover == null)
             return;
 
-        completionEffect.Play(mover.transform, completionRevealDelay);
+        completionEffect.Play(mover.transform, completionEffectDelay );
     }
 
     private static float GetFirstAnimationClipLength(Animator animator)

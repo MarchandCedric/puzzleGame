@@ -29,3 +29,16 @@ Recommended workflow:
 1. Keep real secrets only in local ignored env files.
 2. Commit template files with placeholder values when the team needs setup guidance.
 3. Rotate any secret immediately if it was ever committed or shared publicly.
+
+## Blender to unity
+
+### Animation
+
+To export from Blender to unity, use those parameters :
+> empty the scene
+> import fbx
+> unselect all
+> export fbx with options :
+    > armature fbx : root
+
+

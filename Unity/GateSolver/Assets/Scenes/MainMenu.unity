@@ -1389,7 +1389,7 @@ MonoBehaviour:
   loginPendingTextColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   loginCanvasGroup: {fileID: 1307095802}
   authenticatedCanvasGroup: {fileID: 2102707767}
-  transitionDuration: 1.5
+  transitionDuration: 0.3
 --- !u!4 &121424787
 Transform:
   m_ObjectHideFlags: 0

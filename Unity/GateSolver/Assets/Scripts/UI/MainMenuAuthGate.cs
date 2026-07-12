@@ -164,10 +164,9 @@ public class MainMenuAuthGate : MonoBehaviour
             return;
         }
 
-        if (transitionRoutine != null)
-            StopCoroutine(transitionRoutine);
-
-        transitionRoutine = StartCoroutine(TransitionAuthenticatedState(isAuthenticated));
+        GameObject outgoingRoot = isAuthenticated ? loginRoot : authenticatedRoot;
+        GameObject incomingRoot = isAuthenticated ? authenticatedRoot : loginRoot;
+        ShowUiWithTransition(outgoingRoot, incomingRoot);
         currentAuthenticatedState = isAuthenticated;
     }
 
@@ -197,7 +196,7 @@ public class MainMenuAuthGate : MonoBehaviour
 
         SetRootVisible(loginRoot, loginCanvasGroup, true, true);
         SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
-           
+
         warningOfflineRoot.SetActive(true);
     }
 
@@ -206,16 +205,9 @@ public class MainMenuAuthGate : MonoBehaviour
     {
         isLoginPending = false;
         isOfflineSession = true;
-        //SetRootVisible(loginRoot, loginCanvasGroup, true, true);
-        //SetRootVisible(authenticatedRoot, authenticatedCanvasGroup, false, true);
-        //SetRootVisible(playOfflineUi, authenticatedCanvasGroup, false, true);
 
         ShowUiWithTransition(playOfflineUi, loginRoot);
-        
-        //HideOfflineUi();
         ApplySessionControls(false);
-
-        
     }
 
     public void ConfirmOfflinePlay()
@@ -285,9 +277,7 @@ public class MainMenuAuthGate : MonoBehaviour
             warningOfflineRoot.SetActive(false);
 
         if (playOfflineUi != null)
-        {
-            ShowUiWithTransition(loginRoot,playOfflineUi);
-        }
+            ShowUiWithTransition(loginRoot, playOfflineUi);
         else
             Debug.LogWarning($"{nameof(MainMenuAuthGate)} cannot show offline play UI because playOfflineUi is not assigned.");
 
@@ -411,34 +401,6 @@ public class MainMenuAuthGate : MonoBehaviour
 
             yield return null;
         }
-    }
-
-    private IEnumerator TransitionAuthenticatedState(bool isAuthenticated)
-    {
-        GameObject outgoingRoot = isAuthenticated ? loginRoot : authenticatedRoot;
-        CanvasGroup outgoingGroup = isAuthenticated ? loginCanvasGroup : authenticatedCanvasGroup;
-        GameObject incomingRoot = isAuthenticated ? authenticatedRoot : loginRoot;
-        CanvasGroup incomingGroup = isAuthenticated ? authenticatedCanvasGroup : loginCanvasGroup;
-
-        SetRootVisible(incomingRoot, incomingGroup, true, false);
-
-        float elapsed = 0f;
-        float duration = Mathf.Max(0.01f, transitionDuration);
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-
-            SetCanvasAlpha(outgoingGroup, 1f - t);
-            SetCanvasAlpha(incomingGroup, t);
-
-            yield return null;
-        }
-
-        SetRootVisible(outgoingRoot, outgoingGroup, false, true);
-        SetRootVisible(incomingRoot, incomingGroup, true, true);
-        transitionRoutine = null;
     }
 
     private IEnumerator TransitionUi(GameObject outgoingRoot, GameObject incomingRoot)
