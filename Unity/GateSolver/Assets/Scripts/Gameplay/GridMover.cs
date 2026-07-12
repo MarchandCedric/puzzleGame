@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -10,17 +11,25 @@ public class GridMover : MonoBehaviour
     [SerializeField] private GridBoard board;
 
     [Header("Grid Settings")]
-    [SerializeField] private float moveDuration = 0.12f;
+    [SerializeField] private float moveDuration = 0.18f;
     [SerializeField] private float heightOffset = 1f;
     [SerializeField] private bool snapToGridOnStart = true;
 
+    [Header("Movement Feel")]
+    [SerializeField] private AnimationCurve moveCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    [SerializeField] private float hopHeight = 0.08f;
+    [SerializeField, Min(1)] private int maxBufferedMoves = 12;
+
     private Vector3Int gridPosition = Vector3Int.zero;
     private bool isMoving = false;
+    private Coroutine moveRoutine;
+    private readonly Queue<Vector3Int> bufferedMoves = new Queue<Vector3Int>();
     private PlayerKeyRing keyRing;
     private IPlayerAnimationController animationController;
 
     public int MoveCount { get; private set; }
     public Vector3Int CurrentGridPosition => gridPosition;
+    public int BufferedMoveCount => bufferedMoves.Count;
     public event Action<Vector3Int, int> MoveResolved;
 
     private void Awake()
@@ -44,34 +53,31 @@ public class GridMover : MonoBehaviour
 
     private void Update()
     {
-        if (isMoving)
-            return;
-
         Vector3Int direction = ReadMoveInput();
         if (direction == Vector3Int.zero)
             return;
 
-        TryStartMove(direction);
+        RequestMove(direction);
     }
 
     public void RequestMoveUp()
     {
-        TryStartMove(new Vector3Int(1, 0, 0));
+        RequestMove(new Vector3Int(1, 0, 0));
     }
 
     public void RequestMoveDown()
     {
-        TryStartMove(new Vector3Int(-1, 0, 0));
+        RequestMove(new Vector3Int(-1, 0, 0));
     }
 
     public void RequestMoveLeft()
     {
-        TryStartMove(new Vector3Int(0, 0, 1));
+        RequestMove(new Vector3Int(0, 0, 1));
     }
 
     public void RequestMoveRight()
     {
-        TryStartMove(new Vector3Int(0, 0, -1));
+        RequestMove(new Vector3Int(0, 0, -1));
     }
 
     private Vector3Int ReadMoveInput()
@@ -115,24 +121,48 @@ public class GridMover : MonoBehaviour
         return board.TryUnlockDoor(targetGridPosition, keyRing);
     }
 
-    private void TryStartMove(Vector3Int direction)
+    private void RequestMove(Vector3Int direction)
     {
-        if (isMoving || direction == Vector3Int.zero)
+        if (direction == Vector3Int.zero)
             return;
 
-        Vector3Int targetGridPosition = gridPosition + direction;
-        if (!TryResolveTargetCell(targetGridPosition))
-            return;
+        if (isMoving)
+        {
+            if (bufferedMoves.Count < maxBufferedMoves)
+                bufferedMoves.Enqueue(direction);
 
-        if (!CanMoveTo(targetGridPosition))
             return;
+        }
 
-        StartCoroutine(MoveToCell(targetGridPosition));
+        bufferedMoves.Enqueue(direction);
+        moveRoutine = StartCoroutine(ProcessBufferedMoves());
+    }
+
+    private IEnumerator ProcessBufferedMoves()
+    {
+        isMoving = true;
+
+        while (bufferedMoves.Count > 0 && isActiveAndEnabled)
+        {
+            Vector3Int direction = bufferedMoves.Dequeue();
+            Vector3Int targetGridPosition = gridPosition + direction;
+
+            if (!TryResolveTargetCell(targetGridPosition))
+                continue;
+
+            if (!CanMoveTo(targetGridPosition))
+                continue;
+
+            yield return MoveToCell(targetGridPosition);
+        }
+
+        animationController?.EndMove();
+        isMoving = false;
+        moveRoutine = null;
     }
 
     private IEnumerator MoveToCell(Vector3Int targetGridPosition)
     {
-        isMoving = true;
         animationController?.BeginMove(ToAnimationDirection(targetGridPosition - gridPosition));
 
         Vector3 start = transform.position;
@@ -144,7 +174,13 @@ public class GridMover : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / moveDuration);
-            transform.position = Vector3.Lerp(start, end, t);
+            float easedT = moveCurve != null ? Mathf.Clamp01(moveCurve.Evaluate(t)) : SmoothStep(t);
+            Vector3 position = Vector3.LerpUnclamped(start, end, easedT);
+
+            if (hopHeight > 0f)
+                position.y += Mathf.Sin(t * Mathf.PI) * hopHeight;
+
+            transform.position = position;
             yield return null;
         }
 
@@ -153,6 +189,18 @@ public class GridMover : MonoBehaviour
         MoveCount++;
         board?.ResolveArrival(gridPosition, keyRing);
         MoveResolved?.Invoke(gridPosition, MoveCount);
+    }
+
+    private void OnDisable()
+    {
+        bufferedMoves.Clear();
+
+        if (moveRoutine != null)
+        {
+            StopCoroutine(moveRoutine);
+            moveRoutine = null;
+        }
+
         animationController?.EndMove();
         isMoving = false;
     }
@@ -231,5 +279,10 @@ public class GridMover : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static float SmoothStep(float t)
+    {
+        return t * t * (3f - 2f * t);
     }
 }

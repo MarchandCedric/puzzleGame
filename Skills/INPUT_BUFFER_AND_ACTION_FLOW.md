@@ -34,6 +34,7 @@
    Keyboard input and touch HUD buttons must both feed the same move-request path.
 2. Validate move
 3. Execute animation
+   Movement execution may use eased visual interpolation and model-facing smoothing, but the grid action remains locked until the full movement resolution finishes.
 4. Update grid position
 5. Increment move count
 6. Resolve interactions such as key pickup, collectible pickup, portal activation, or door unlock

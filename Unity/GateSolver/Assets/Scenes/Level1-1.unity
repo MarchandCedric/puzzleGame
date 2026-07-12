@@ -14334,7 +14334,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridMover
   board: {fileID: 0}
-  moveDuration: 0.12
+  moveDuration: 0.18
   heightOffset: 1
   snapToGridOnStart: 1
 --- !u!136 &1883876419

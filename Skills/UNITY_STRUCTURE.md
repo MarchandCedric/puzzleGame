@@ -52,6 +52,7 @@ callbacks still work if Unity's deep-link event is missed.
 - `LevelCompletionResult` as the plain C# result payload for completed levels
 - `LevelObjectiveState` as the plain C# collectible progress and portal activation state
 - `IPlayerAnimationController` and adapters for mapping movement intent to model-specific animator parameters and visual-facing rotation
+- Player movement adapters may smooth visual travel and facing rotation as presentation, while grid validation, grid position updates, move counting, and interaction resolution stay tile/action based.
 
 Gameplay rules should live in testable plain C# classes when possible, with `MonoBehaviour` classes acting as Unity-facing adapters.
 Keep board-authoring data on a dedicated board object rather than scattering gameplay logic across floor pieces in the scene hierarchy.

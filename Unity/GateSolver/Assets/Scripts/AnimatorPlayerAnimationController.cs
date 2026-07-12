@@ -14,12 +14,16 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
     [SerializeField] private float downYaw = 225f;
     [SerializeField] private float leftYaw = 315f;
     [SerializeField] private float rightYaw = 135f;
+    [SerializeField] private float turnDuration = 0.08f;
 
     [Header("Directional Parameters")]
     [SerializeField] private string walkUpParameter = "";
     [SerializeField] private string walkDownParameter = "";
     [SerializeField] private string walkLeftParameter = "";
     [SerializeField] private string walkRightParameter = "";
+
+    private bool hasTargetYaw;
+    private float targetYaw;
 
     private void Awake()
     {
@@ -28,6 +32,20 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
 
         if (visualRoot == null)
             visualRoot = transform;
+    }
+
+    private void Update()
+    {
+        if (visualRoot == null || !hasTargetYaw)
+            return;
+
+        Vector3 eulerAngles = visualRoot.localEulerAngles;
+        float turnStep = turnDuration <= 0f ? 1f : Time.deltaTime / turnDuration;
+        float yaw = Mathf.LerpAngle(eulerAngles.y, targetYaw, Mathf.Clamp01(turnStep));
+        visualRoot.localEulerAngles = new Vector3(eulerAngles.x, yaw, eulerAngles.z);
+
+        if (Mathf.Abs(Mathf.DeltaAngle(yaw, targetYaw)) <= 0.1f)
+            hasTargetYaw = false;
     }
 
     public void BeginMove(MoveAnimationDirection direction)
@@ -102,8 +120,14 @@ public class AnimatorPlayerAnimationController : MonoBehaviour, IPlayerAnimation
                 return;
         }
 
-        Vector3 eulerAngles = visualRoot.localEulerAngles;
-        visualRoot.localEulerAngles = new Vector3(eulerAngles.x, yaw, eulerAngles.z);
+        targetYaw = yaw;
+        hasTargetYaw = true;
+
+        if (turnDuration <= 0f)
+        {
+            Vector3 eulerAngles = visualRoot.localEulerAngles;
+            visualRoot.localEulerAngles = new Vector3(eulerAngles.x, targetYaw, eulerAngles.z);
+        }
     }
 
     private void SetBoolIfConfigured(string parameterName, bool value)

@@ -1,0 +1,10 @@
+﻿[mcp_servers.unity-mcp]
+command = "C:\\Users\\cedlf\\.unity\\relay\\relay_win.exe"
+args = ["--mcp"]
+
+[mcp_servers.unity-mcp.tools.Unity_GetConsoleLogs]
+approval_mode = "approve"
+[mcp_servers.blender]
+command = "C:\\Users\\cedlf\\Documents\\Projets Ced\\PuzzleGame\\Unity\\GateSolver\\Tools\\blender-mcp\\.venv\\Scripts\\python.exe"
+args = ["-m", "blmcp"]
+
